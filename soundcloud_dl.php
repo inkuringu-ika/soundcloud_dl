@@ -1,7 +1,7 @@
 <?php
 //Warning: This program is pre-release and may be unstable.
 //Copyright (c) 2020 inkuringu-ika
-//This software is released under the GPL3.0 License, see LICENSE.txt.
+//This software is released under the GPL3.0 License, see LICENSE.
 
 
 header("Content-Type: text/plan");

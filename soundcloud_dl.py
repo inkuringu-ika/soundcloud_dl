@@ -5,6 +5,7 @@ import re
 import sys
 from termcolor import colored, cprint
 import colorama
+from tqdm import tqdm
 colorama.init()
 
 dir = os.path.dirname(sys.argv[0])
@@ -58,9 +59,13 @@ try:
     json2 = json.loads(r.text)
     if(json2[0]["downloadable"] and json2[0]["has_downloads_left"]):
         request_url = json2[0]["download_url"] + '?client_id=' + client_id
-        r = requests.get(request_url)
-        filesave = open(Noid + '.mp3', 'wb')
-        filesave.write(r.content)
+        res = requests.get(request_url,stream=True)
+        pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
+        with open(Noid + '.mp3', 'wb') as file:
+            for chunk in res.iter_content(chunk_size=1024):
+                file.write(chunk)
+                pbar.update(len(chunk))
+            pbar.close()
     else:
         cprint('not free download', 'yellow')
         #print('not free download')
@@ -69,9 +74,13 @@ try:
         json3 = json.loads(r.text)
         url = json3["url"]
         request_url = url
-        r = requests.get(request_url)
-        filesave = open(Noid + '.mp3', 'wb')
-        filesave.write(r.content)
+        res = requests.get(request_url)
+        pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
+        with open(Noid + '.mp3', 'wb') as file:
+            for chunk in res.iter_content(chunk_size=1024):
+                file.write(chunk)
+                pbar.update(len(chunk))
+            pbar.close()
 except:
     cprint('Error: Unexpected error', 'red')
     sys.exit(1)

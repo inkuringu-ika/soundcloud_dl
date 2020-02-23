@@ -13,7 +13,7 @@ dir = os.path.dirname(sys.argv[0])
 #
 cprint('Warning: This program is pre-release and may be unstable.', 'yellow')
 print('Copyright (c) 2020 inkuringu-ika')
-print('This software is released under the GPL3.0 License, see LICENSE.')
+print('This software is released under the GPL3.0 License, see LICENSE file.')
 #
 
 

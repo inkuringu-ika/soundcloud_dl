@@ -1,20 +1,22 @@
-import os
-import requests
-import json
-import re
-import sys
 from termcolor import colored, cprint
 import colorama
-from tqdm import tqdm
 colorama.init()
-
-dir = os.path.dirname(sys.argv[0])
 
 #
 cprint('Warning: This program is pre-release and may be unstable.', 'yellow')
 print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the GPL3.0 License, see LICENSE file.')
 #
+
+import os
+import requests
+import json
+import re
+import sys
+from tqdm import tqdm
+
+dir = os.path.dirname(sys.argv[0])
+
 
 
 

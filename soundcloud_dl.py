@@ -26,7 +26,7 @@ dir = os.path.dirname(sys.argv[0])
 #client_id = '00000000000000000000000000000000'
 
 #有効期限がある
-#client_id = 'qWUPqUOvYPTG1SDjwXJCNm9gOwM3rNeP'
+#client_id = 't0h1jzYMsaZXy6ggnZO71gHK3Ms6CFwE'
 
 #こっちのほうが有効期限長いかも?
 client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
@@ -62,8 +62,15 @@ try:
     if(json2[0]["downloadable"] and json2[0]["has_downloads_left"]):
         request_url = json2[0]["download_url"] + '?client_id=' + client_id
         res = requests.get(request_url,stream=True)
+        if(res.headers["content-type"] == "audio/x-wav"):
+            ctype = ".wav"
+        elif(res.headers["content-type"] == "audio/mpeg"):
+            ctype = ".mp3"
+        else:
+            cprint('Error: Unexpected error', 'red')
+            sys.exit(1)
         pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
-        with open(Noid + '.mp3', 'wb') as file:
+        with open(Noid + ctype, 'wb') as file:
             for chunk in res.iter_content(chunk_size=1024):
                 file.write(chunk)
                 pbar.update(len(chunk))
@@ -76,7 +83,7 @@ try:
         json3 = json.loads(r.text)
         url = json3["url"]
         request_url = url
-        res = requests.get(request_url)
+        res = requests.get(request_url,stream=True)
         pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
         with open(Noid + '.mp3', 'wb') as file:
             for chunk in res.iter_content(chunk_size=1024):

@@ -1,9 +1,12 @@
-from termcolor import colored, cprint
-import colorama
-colorama.init()
+#from termcolor import colored, cprint
+#import colorama
+#colorama.init()
+
+from colorama import init, Fore, Style
+init()
 
 #
-cprint('Warning: This program is pre-release and may be unstable.', 'yellow')
+print(Fore.YELLOW + 'Warning: This program is pre-release and may be unstable.' + Style.RESET_ALL)
 print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the GPL3.0 License, see LICENSE file.')
 #
@@ -26,7 +29,7 @@ dir = os.path.dirname(sys.argv[0])
 #client_id = '00000000000000000000000000000000'
 
 #有効期限がある
-#client_id = 't0h1jzYMsaZXy6ggnZO71gHK3Ms6CFwE'
+#client_id = 'psT32GLDMZ0TQKgfPkzrGIlco3PYA1kf'
 
 #こっちのほうが有効期限長いかも?
 client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
@@ -43,7 +46,7 @@ try:
     r = requests.get(request_url)
     json1 = json.loads(r.text)
 except:
-    cprint('Error: url is wrong', 'red')
+    print(Fore.RED + 'Error: url is wrong' + Style.RESET_ALL)
     #print('Error: url is wrong')
     sys.exit(1)
 
@@ -67,8 +70,7 @@ try:
         elif(res.headers["content-type"] == "audio/mpeg"):
             ctype = ".mp3"
         else:
-            cprint('Error: Unexpected error', 'red')
-            sys.exit(1)
+            raise Exception
         pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
         with open(Noid + ctype, 'wb') as file:
             for chunk in res.iter_content(chunk_size=1024):
@@ -76,7 +78,7 @@ try:
                 pbar.update(len(chunk))
             pbar.close()
     else:
-        cprint('not free download', 'yellow')
+        print(Fore.YELLOW + 'not free download' + Style.RESET_ALL)
         #print('not free download')
         request_url = json2[0]["media"]["transcodings"][1]["url"] + '?client_id=' + client_id
         r = requests.get(request_url)
@@ -91,5 +93,5 @@ try:
                 pbar.update(len(chunk))
             pbar.close()
 except:
-    cprint('Error: Unexpected error', 'red')
+    print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
     sys.exit(1)

@@ -14,7 +14,7 @@ $input = $_GET["url"];
 //$client_id = "00000000000000000000000000000000";
 
 //有効期限がある
-//$client_id = "qWUPqUOvYPTG1SDjwXJCNm9gOwM3rNeP";
+//$client_id = "psT32GLDMZ0TQKgfPkzrGIlco3PYA1kf";
 
 //こっちのほうが有効期限長いかも?
 $client_id = "LBCcHmRB8XSStWL6wKH2HPACspQlXg2P";

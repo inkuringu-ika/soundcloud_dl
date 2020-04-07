@@ -37,7 +37,19 @@ client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
 
 
 
+
 userinput = input('url>>')
+
+try:
+    request_url = "https://soundcloud.com/"
+    r = requests.get(request_url)
+    research = 'window.__sc_version = "(.*)";</script>'
+    resultresearch = re.search(research, r.text)
+    print("app_version: " + resultresearch.group(1))
+    app_version = resultresearch.group(1)
+except:
+    app_version = '1586177347'
+    print("app_version(native): " + app_version)
 
 
 #url_id to No.id
@@ -59,11 +71,11 @@ try:
     
     print("downloading...")
     
-    request_url = 'https://api-v2.soundcloud.com/tracks?ids=' + Noid + '&client_id=' + client_id
+    request_url = 'https://api-v2.soundcloud.com/tracks?ids=' + Noid + '&client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
     r = requests.get(request_url)
     json2 = json.loads(r.text)
     if(json2[0]["downloadable"] and json2[0]["has_downloads_left"]):
-        request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=1586177347&app_locale=en"
+        request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
         r = requests.get(request_url)
         request_url = json.loads(r.text)["redirectUri"]
         res = requests.get(request_url,stream=True)

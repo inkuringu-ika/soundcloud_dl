@@ -63,7 +63,9 @@ try:
     r = requests.get(request_url)
     json2 = json.loads(r.text)
     if(json2[0]["downloadable"] and json2[0]["has_downloads_left"]):
-        request_url = json2[0]["download_url"] + '?client_id=' + client_id
+        request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=1586177347&app_locale=en"
+        r = requests.get(request_url)
+        request_url = json.loads(r.text)["redirectUri"]
         res = requests.get(request_url,stream=True)
         if(res.headers["content-type"] == "audio/x-wav"):
             ctype = ".wav"

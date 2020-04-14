@@ -29,7 +29,7 @@ dir = os.path.dirname(sys.argv[0])
 #client_id = '00000000000000000000000000000000'
 
 #有効期限がある
-#client_id = 'psT32GLDMZ0TQKgfPkzrGIlco3PYA1kf'
+#client_id = 'OdgVKzzPYXN6cljKY5A6iOga2Cb0OUXf'
 
 #こっちのほうが有効期限長いかも?
 client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
@@ -40,7 +40,9 @@ client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
 
 userinput = input('url>>')
 
+#app_version
 try:
+    #https://soundcloud.com/version.txt
     request_url = "https://soundcloud.com/"
     r = requests.get(request_url)
     research = 'window.__sc_version = "(.*)";</script>'
@@ -48,7 +50,7 @@ try:
     print("app_version: " + resultresearch.group(1))
     app_version = resultresearch.group(1)
 except:
-    app_version = '1586177347'
+    app_version = '1586450766'
     print("app_version(native): " + app_version)
 
 

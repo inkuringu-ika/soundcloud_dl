@@ -6,16 +6,18 @@ from colorama import init, Fore, Style
 init()
 
 #
-print(Fore.YELLOW + 'Warning: This program is pre-release and may be unstable.' + Style.RESET_ALL)
+#print(Fore.YELLOW + 'Warning: This program is pre-release and may be unstable.' + Style.RESET_ALL)
 print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the GPL3.0 License, see LICENSE file.')
 #
 
 import os
 import requests
+import urllib
 import json
 import re
 import sys
+import traceback
 from tqdm import tqdm
 
 dir = os.path.dirname(sys.argv[0])
@@ -40,37 +42,53 @@ client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
 
 userinput = input('url>>')
 
+if("soundcloud.com" in urllib.parse.urlparse(userinput).netloc):
+    pass
+else:
+    print(Fore.RED + 'Error: url is wrong' + Style.RESET_ALL)
+    sys.exit(1)
+
+try:
+    request_url = userinput
+    r = requests.get(request_url)
+except:
+    print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
+    traceback.print_exc()
+    sys.exit(1)
+if(r.status_code == requests.codes.ok):
+    pass
+else:
+    print(Fore.RED + 'Error: url is wrong' + Style.RESET_ALL)
+    sys.exit(1)
 #app_version
 try:
     #https://soundcloud.com/version.txt
-    request_url = "https://soundcloud.com/"
-    r = requests.get(request_url)
-    research = 'window.__sc_version = "(.*)";</script>'
-    resultresearch = re.search(research, r.text)
-    print("app_version: " + resultresearch.group(1))
-    app_version = resultresearch.group(1)
+    #request_url = "https://soundcloud.com/"
+    app_version = re.search('window.__sc_version = "(.*)";</script>', r.text).group(1)
+    print("app_version: " + app_version)
 except:
-    app_version = '1586450766'
-    print("app_version(native): " + app_version)
+    print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
+    traceback.print_exc()
+    #app_version = '1586450766'
+    #print("app_version(native): " + app_version)
+    sys.exit(1)
 
 
 #url_id to No.id
 request_url = 'https://soundcloud.com/oembed?format=json&url=' + userinput
 try:
     r = requests.get(request_url)
-    json1 = json.loads(r.text)
+    Noid = re.search("tracks%2F(.*)&", json.loads(r.text)["html"]).group(1)
+    print("Track ID: " + Noid)
 except:
     print(Fore.RED + 'Error: url is wrong' + Style.RESET_ALL)
+    #print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
+    #traceback.print_exc()
     #print('Error: url is wrong')
     sys.exit(1)
 
+
 try:
-    Noid_html = json1["html"]
-    research = "tracks%2F(.*)&"
-    resultresearch = re.search(research, Noid_html)
-    Noid = resultresearch.group(1)
-    print(Noid)
-    
     print("downloading...")
     
     request_url = 'https://api-v2.soundcloud.com/tracks?ids=' + Noid + '&client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
@@ -86,6 +104,7 @@ try:
         elif(res.headers["content-type"] == "audio/mpeg"):
             ctype = ".mp3"
         else:
+            print("format error")
             raise Exception
         pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
         with open(Noid + ctype, 'wb') as file:
@@ -110,4 +129,5 @@ try:
             pbar.close()
 except:
     print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
+    traceback.print_exc()
     sys.exit(1)

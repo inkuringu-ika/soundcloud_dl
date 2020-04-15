@@ -31,7 +31,7 @@ dir = os.path.dirname(sys.argv[0])
 #client_id = '00000000000000000000000000000000'
 
 #有効期限がある
-#client_id = 'OdgVKzzPYXN6cljKY5A6iOga2Cb0OUXf'
+#client_id = '7z0rxinRI8F4NJnJYPokHFNqPSi0qraJ'
 
 #こっちのほうが有効期限長いかも?
 client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
@@ -69,7 +69,7 @@ try:
 except:
     print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
     traceback.print_exc()
-    #app_version = '1586450766'
+    #app_version = '1586874666'
     #print("app_version(native): " + app_version)
     sys.exit(1)
 

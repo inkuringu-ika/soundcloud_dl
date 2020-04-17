@@ -31,7 +31,7 @@ dir = os.path.dirname(sys.argv[0])
 #client_id = '00000000000000000000000000000000'
 
 #有効期限がある
-#client_id = '7z0rxinRI8F4NJnJYPokHFNqPSi0qraJ'
+#client_id = 'PANENeeumEFxeUKuTj575zguSBQI5DwE'
 
 #こっちのほうが有効期限長いかも?
 client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
@@ -45,7 +45,7 @@ userinput = input('url>>')
 if("soundcloud.com" in urllib.parse.urlparse(userinput).netloc):
     pass
 else:
-    print(Fore.RED + 'Error: url is wrong' + Style.RESET_ALL)
+    print(Fore.RED + 'Error: Url is wrong' + Style.RESET_ALL)
     sys.exit(1)
 
 try:
@@ -58,7 +58,7 @@ except:
 if(r.status_code == requests.codes.ok):
     pass
 else:
-    print(Fore.RED + 'Error: url is wrong' + Style.RESET_ALL)
+    print(Fore.RED + 'Error: Url is wrong' + Style.RESET_ALL)
     sys.exit(1)
 #app_version
 try:
@@ -69,7 +69,7 @@ try:
 except:
     print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
     traceback.print_exc()
-    #app_version = '1586874666'
+    #app_version = '1587041896'
     #print("app_version(native): " + app_version)
     sys.exit(1)
 
@@ -81,7 +81,7 @@ try:
     Noid = re.search("tracks%2F(.*)&", json.loads(r.text)["html"]).group(1)
     print("Track ID: " + Noid)
 except:
-    print(Fore.RED + 'Error: url is wrong' + Style.RESET_ALL)
+    print(Fore.RED + 'Error: Url is wrong' + Style.RESET_ALL)
     #print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
     #traceback.print_exc()
     #print('Error: url is wrong')
@@ -113,7 +113,7 @@ try:
                 pbar.update(len(chunk))
             pbar.close()
     else:
-        print(Fore.YELLOW + 'not free download' + Style.RESET_ALL)
+        print(Fore.YELLOW + 'Not a free download!' + Style.RESET_ALL)
         #print('not free download')
         request_url = json2[0]["media"]["transcodings"][1]["url"] + '?client_id=' + client_id
         r = requests.get(request_url)

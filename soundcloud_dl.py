@@ -79,33 +79,38 @@ try:
             request_url = 'https://api-v2.soundcloud.com/tracks?ids=' + Noid + '&client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
             r = requests.get(request_url)
             json2 = json.loads(r.text)
-            if(json2[0]["downloadable"] and json2[0]["has_downloads_left"]):
-                request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
-                r = requests.get(request_url)
-                request_url = json.loads(r.text)["redirectUri"]
-                res = requests.get(request_url,stream=True)
-                filename = res.headers["content-disposition"][res.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"")
-                pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
-                with open(filename, 'wb') as file:
-                    for chunk in res.iter_content(chunk_size=1024):
-                        file.write(chunk)
-                        pbar.update(len(chunk))
-                    pbar.close()
-            else:
-                print(Fore.YELLOW + 'Not a free download!' + Style.RESET_ALL)
-                #print('not free download')
-                filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json2[0]["title"] + ".mp3")
-                request_url = json2[0]["media"]["transcodings"][1]["url"] + '?client_id=' + client_id
-                r = requests.get(request_url)
-                url = json.loads(r.text)["url"]
-                request_url = url
-                res = requests.get(request_url,stream=True)
-                pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
-                with open(filename, 'wb') as file:
-                    for chunk in res.iter_content(chunk_size=1024):
-                        file.write(chunk)
-                        pbar.update(len(chunk))
-                    pbar.close()
+            for json3 in json2:
+                try:
+                    if(json3["downloadable"] and json3["has_downloads_left"]):
+                        request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
+                        r = requests.get(request_url)
+                        request_url = json.loads(r.text)["redirectUri"]
+                        res = requests.get(request_url,stream=True)
+                        filename = res.headers["content-disposition"][res.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"")
+                        pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
+                        with open(filename, 'wb') as file:
+                            for chunk in res.iter_content(chunk_size=1024):
+                                file.write(chunk)
+                                pbar.update(len(chunk))
+                            pbar.close()
+                    else:
+                        print(Fore.YELLOW + 'Not a free download!' + Style.RESET_ALL)
+                        #print('not free download')
+                        filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json3["title"] + ".mp3")
+                        request_url = json3["media"]["transcodings"][1]["url"] + '?client_id=' + client_id
+                        r = requests.get(request_url)
+                        url = json.loads(r.text)["url"]
+                        request_url = url
+                        res = requests.get(request_url,stream=True)
+                        pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
+                        with open(filename, 'wb') as file:
+                            for chunk in res.iter_content(chunk_size=1024):
+                                file.write(chunk)
+                                pbar.update(len(chunk))
+                            pbar.close()
+                except:
+                    print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
+                    traceback.print_exc()
         except:
             print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
             traceback.print_exc()

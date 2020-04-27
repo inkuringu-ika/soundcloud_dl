@@ -15,6 +15,9 @@ import sys
 import traceback
 from tqdm import tqdm
 
+class ConnectError(Exception):
+    pass
+
 
 client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
 
@@ -28,9 +31,9 @@ else:
     sys.exit(1)
 try:
     request_url = userinput
-    r = requests.get(request_url)
+    r = requests.get(request_url, timeout=10)
 except:
-    print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
+    print(Fore.RED + 'Error: Connection error' + Style.RESET_ALL)
     traceback.print_exc()
     sys.exit(1)
 if(r.status_code == requests.codes.ok):
@@ -66,7 +69,6 @@ elif(json_result["data"][0]["kind"] == "playlist"):
     json_result_split = json_result["data"][0]["tracks"]
 else:
     print(Fore.YELLOW + 'Error: Unsupported url' + Style.RESET_ALL)
-    traceback.print_exc()
     sys.exit(1)
 
 
@@ -77,13 +79,28 @@ for json_result_split_onedata in json_result_split:
         Noid = str(json_result_split_onedata["id"])
         print("Track ID: " + Noid)
         request_url = 'https://api-v2.soundcloud.com/tracks?ids=' + Noid + '&client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
-        r = requests.get(request_url)
+        try:
+            r = requests.get(request_url, timeout=10)
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
+        except:
+            raise ConnectError
         json2 = json.loads(r.text)
         if(json2[0]["downloadable"] and json2[0]["has_downloads_left"]):
             request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
-            r = requests.get(request_url)
+            try:
+                r = requests.get(request_url, timeout=10)
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
+            except:
+                raise ConnectError
             request_url = json.loads(r.text)["redirectUri"]
-            res = requests.get(request_url,stream=True)
+            try:
+                res = requests.get(request_url, stream=True, timeout=10)
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
+            except:
+                raise ConnectError
             filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json2[0]["title"] + "." + res.headers["content-disposition"][res.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"").split(".")[-1])
             pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
             with open(filename, 'wb') as file:
@@ -93,13 +110,22 @@ for json_result_split_onedata in json_result_split:
                 pbar.close()
         else:
             print(Fore.YELLOW + 'Not a free download!' + Style.RESET_ALL)
-            #print('not free download')
             filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json2[0]["title"] + ".mp3")
             request_url = json2[0]["media"]["transcodings"][1]["url"] + '?client_id=' + client_id
-            r = requests.get(request_url)
+            try:
+                r = requests.get(request_url, timeout=10)
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
+            except:
+                raise ConnectError
             url = json.loads(r.text)["url"]
             request_url = url
-            res = requests.get(request_url,stream=True)
+            try:
+                res = requests.get(request_url, stream=True, timeout=10)
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
+            except:
+                raise ConnectError
             pbar = tqdm(total=int(res.headers["content-length"]), unit="B", unit_scale=True)
             with open(filename, 'wb') as file:
                 for chunk in res.iter_content(chunk_size=1024):
@@ -108,6 +134,9 @@ for json_result_split_onedata in json_result_split:
                 pbar.close()
     except KeyboardInterrupt:
         sys.exit(0)
+    except ConnectError:
+        print("Error: Connection error")
+        traceback.print_exc()
     except:
         print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
         traceback.print_exc()

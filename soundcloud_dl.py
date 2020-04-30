@@ -1,17 +1,26 @@
-from colorama import init, Fore, Style
-init()
-
 #
 print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the GPL3.0 License, see LICENSE file.')
 #
+import sys
 
+try:
+    if(sys.argv[1] == "-U"):
+        #print("Checking for updates...")
+        #print("Failed to check for updates.")
+        #print
+        input()
+        sys.exit(1)
+except:
+    pass
+
+from colorama import init, Fore, Style
+init()
 import os
 import requests
 import urllib
 import json
 import re
-import sys
 import traceback
 from tqdm import tqdm
 
@@ -24,13 +33,22 @@ client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
 
 userinput = input('url>>')
 
-if("soundcloud.com" in urllib.parse.urlparse(userinput).netloc):
+inputurl = userinput
+
+if(urllib.parse.urlparse(userinput).netloc == "soundcloud.com"):
     pass
+elif(urllib.parse.urlparse(userinput).netloc == "m.soundcloud.com"):
+    inputurl_parse = urllib.parse.urlparse(inputurl)
+    inputurl = urllib.parse.ParseResult(inputurl_parse.scheme, "soundcloud.com", inputurl_parse.path, inputurl_parse.params, inputurl_parse.query, inputurl_parse.fragment).geturl()
+    pass
+elif("soundcloud.com" in urllib.parse.urlparse(userinput).netloc):
+    print(Fore.YELLOW + 'Error: Unsupported url' + Style.RESET_ALL)
+    sys.exit(1)
 else:
     print(Fore.RED + 'Error: Url is wrong' + Style.RESET_ALL)
     sys.exit(1)
 try:
-    request_url = userinput
+    request_url = inputurl
     r = requests.get(request_url, timeout=10)
 except:
     print(Fore.RED + 'Error: Connection error' + Style.RESET_ALL)
@@ -39,7 +57,7 @@ except:
 if(r.status_code == requests.codes.ok):
     pass
 else:
-    print("status_code:" + r.status_code)
+    print("status_code:" + str(r.status_code))
     print(Fore.RED + 'Error: Url is wrong' + Style.RESET_ALL)
     sys.exit(1)
 

@@ -11,6 +11,8 @@ try:
         #print
         input()
         sys.exit(1)
+except KeyboardInterrupt:
+    sys.exit(0)
 except:
     pass
 
@@ -40,7 +42,6 @@ if(urllib.parse.urlparse(userinput).netloc == "soundcloud.com"):
 elif(urllib.parse.urlparse(userinput).netloc == "m.soundcloud.com"):
     inputurl_parse = urllib.parse.urlparse(inputurl)
     inputurl = urllib.parse.ParseResult(inputurl_parse.scheme, "soundcloud.com", inputurl_parse.path, inputurl_parse.params, inputurl_parse.query, inputurl_parse.fragment).geturl()
-    pass
 elif("soundcloud.com" in urllib.parse.urlparse(userinput).netloc):
     print(Fore.YELLOW + 'Error: Unsupported url' + Style.RESET_ALL)
     sys.exit(1)
@@ -50,6 +51,8 @@ else:
 try:
     request_url = inputurl
     r = requests.get(request_url, timeout=10)
+except KeyboardInterrupt:
+    sys.exit(0)
 except:
     print(Fore.RED + 'Error: Connection error' + Style.RESET_ALL)
     traceback.print_exc()
@@ -63,6 +66,8 @@ else:
 
 try:
     json_result = json.loads(re.search('e.data.forEach\(function\(e\){n\(e\)}\)}catch\(t\){}}\)},(.*)\);', r.text).group(1))[-1]
+except KeyboardInterrupt:
+    sys.exit(0)
 except:
     print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
     traceback.print_exc()
@@ -74,6 +79,8 @@ try:
     #request_url = "https://soundcloud.com/"
     app_version = re.search('window.__sc_version = "(.*)";</script>', r.text).group(1)
     print("app_version: " + app_version)
+except KeyboardInterrupt:
+    sys.exit(0)
 except:
     print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
     traceback.print_exc()

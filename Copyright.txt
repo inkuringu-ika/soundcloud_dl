@@ -1,0 +1,4 @@
+soundcloud_dl: Copyright (c) 2020 inkuringu-ika    GPL3.0
+Colorama: Copyright (c) 2010 Jonathan Hartley    BSD 3-Clause "New" or "Revised" License
+Requests: Copyright (c) 2019 Kenneth Reitz    Apache License Version 2.0
+tqdm: Copyright (c) 2013 noamraph    MIT License , Mozilla Public Licence v2.0

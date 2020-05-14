@@ -109,7 +109,7 @@ try:
         except KeyboardInterrupt:
             raise KeyboardInterrupt
         except:
-            print("Error: Connection error")
+            print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
             traceback.print_exc()
             raise Exit
         json1 = json.loads(r.text)
@@ -121,7 +121,7 @@ try:
             except KeyboardInterrupt:
                 raise KeyboardInterrupt
             except:
-                print("Error: Connection error")
+                print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
                 traceback.print_exc()
                 raise Exit
             json1 = json.loads(r.text)
@@ -145,6 +145,11 @@ except:
 for json_result_split_onedata in json_result_split:
     try:
         print("downloading...")
+        if(json_result_split_onedata["streamable"]):
+            pass
+        else:
+            print(Fore.YELLOW + "Stream unable!" + Style.RESET_ALL)
+            raise Exit
         Noid = str(json_result_split_onedata["id"])
         print("Track ID: " + Noid)
         request_url = 'https://api-v2.soundcloud.com/tracks?ids=' + Noid + '&client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
@@ -153,7 +158,7 @@ for json_result_split_onedata in json_result_split:
         except KeyboardInterrupt:
             raise KeyboardInterrupt
         except:
-            print("Error: Connection error")
+            print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
             traceback.print_exc()
             raise Exit
         json2 = json.loads(r.text)
@@ -164,7 +169,7 @@ for json_result_split_onedata in json_result_split:
             except KeyboardInterrupt:
                 raise KeyboardInterrupt
             except:
-                print("Error: Connection error")
+                print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
                 traceback.print_exc()
                 raise Exit
             request_url = json.loads(r.text)["redirectUri"]
@@ -173,7 +178,7 @@ for json_result_split_onedata in json_result_split:
             except KeyboardInterrupt:
                 raise KeyboardInterrupt
             except:
-                print("Error: Connection error")
+                print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
                 traceback.print_exc()
                 raise Exit
             filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json2[0]["title"] + "." + r.headers["content-disposition"][r.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"").split(".")[-1])
@@ -192,7 +197,7 @@ for json_result_split_onedata in json_result_split:
             except KeyboardInterrupt:
                 raise KeyboardInterrupt
             except:
-                print("Error: Connection error")
+                print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
                 traceback.print_exc()
                 raise Exit
             url = json.loads(r.text)["url"]
@@ -202,7 +207,7 @@ for json_result_split_onedata in json_result_split:
             except KeyboardInterrupt:
                 raise KeyboardInterrupt
             except:
-                print("Error: Connection error")
+                print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
                 traceback.print_exc()
                 raise Exit
             pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)

@@ -1,27 +1,60 @@
 #
 print('Copyright (c) 2020 inkuringu-ika')
-print('This software is released under the GPL3.0 License, see LICENSE file.')
+#print('This software is released under the GPL3.0 License, see LICENSE file.')
+print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
 #
 import sys
-
-try:
-    if(sys.argv[1] == "-U"):
-        #print("Checking for updates...")
-        #print("Failed to check for updates.")
-        #print
-        input()
-        sys.exit(1)
-except KeyboardInterrupt:
-    sys.exit(0)
-except:
-    pass
-
+import json
+import requests
+import subprocess
+import os
 from colorama import init, Fore, Style
 init()
-import os
-import requests
+native_version = "3.5.0"
+
+if(len(sys.argv) >= 2):
+    argv = sys.argv[1]
+    if(argv == "-C"):
+        print()
+        print()
+        print('soundcloud_dl: Copyright (c) 2020 inkuringu-ika    GNU GENERAL PUBLIC LICENSE Version 3')
+        print('Colorama: Copyright (c) 2010 Jonathan Hartley    BSD 3-Clause "New" or "Revised" License')
+        print('Requests: Copyright (c) 2019 Kenneth Reitz    Apache License Version 2.0')
+        print('tqdm: Copyright (c) 2013 noamraph    MIT License , Mozilla Public Licence v2.0')
+        sys.exit(0)
+    if(argv == "-U"):
+        print()
+        print()
+        print("Checking for updates...")
+        try:
+            r = requests.get("https://api.github.com/repos/inkuringu-ika/soundcloud_dl/releases/latest")
+        except KeyboardInterrupt:
+            sys.exit(0)
+        except:
+            print(Fore.RED + "Failed to check for updates." + Style.RESET_ALL)
+            sys.exit(1)
+        latest_version = json.loads(r.text)["tag_name"][1:]
+        print("native_version: " + native_version)
+        print("latest_version: " + latest_version)
+        native_version_if = float(native_version.split(".")[0] + "." + ''.join(native_version.split(".")[1:]))
+        latest_version_if = float(latest_version.split(".")[0] + "." + ''.join(latest_version.split(".")[1:]))
+        if(native_version_if < latest_version_if):
+            print("Updates found!")
+            print("downloading... (Please wait until soundcloud_dl starts automatically.)")
+            url = json.loads(r.text)["assets"][0]["browser_download_url"]
+            #subprocess.Popen('curl -o tmp.bin -L "' + url + '" > && del soundcloud_dl.exe && ren tmp.bin soundcloud_dl.exe', shell=True, cwd=dir)
+            subprocess.Popen('powershell "($WebClient = New-Object System.Net.WebClient).DownloadFile(\'' + url + '\', \'tmp.bin\')" && del soundcloud_dl.exe && ren tmp.bin soundcloud_dl.exe && echo Successful update && start soundcloud_dl.exe', shell=True, cwd=os.path.dirname(sys.argv[0]))
+            sys.exit(0)
+        else:
+            print("No updates found.")
+            sys.exit(0)
+    if(argv == "-V"):
+        print()
+        print()
+        print("Version " + native_version)
+        sys.exit(0)
+
 import urllib
-import json
 import re
 import traceback
 from tqdm import tqdm

@@ -1,8 +1,13 @@
-soundcloud_dl.pyを実行してURLを入力すると、ダウンロードが開始されます。
-soundcloud_dl.phpはサーバー用です。
-
-
 Translated to English using google translate.
+
+How to use
 --------------------------------------------------
 Execute soundcloud_dl.py and enter the URL to start downloading.
-soundcloud_dl.php is for the server.
+
+option
+--------------------------------------------------
+soundcloud_dl.exe [option]
+soundcloud_dl.py [option]
+-U: Update (Experimental option)
+-C: Copyright view
+-V: Version view

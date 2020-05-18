@@ -8,9 +8,18 @@ import json
 import requests
 import subprocess
 import os
+import urllib
+import re
+import traceback
+from tqdm import tqdm
 from colorama import init, Fore, Style
 init()
-native_version = "3.5.0"
+if getattr(sys, 'frozen', False):
+    program_directory_path = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    program_directory_path = os.path.dirname(os.path.abspath(__file__))
+
+native_version = "4.0.0"
 
 if(len(sys.argv) >= 2):
     argv = sys.argv[1]
@@ -43,7 +52,7 @@ if(len(sys.argv) >= 2):
             print("downloading... (Please wait until soundcloud_dl starts automatically.)")
             url = json.loads(r.text)["assets"][0]["browser_download_url"]
             #subprocess.Popen('curl -o tmp.bin -L "' + url + '" > && del soundcloud_dl.exe && ren tmp.bin soundcloud_dl.exe', shell=True, cwd=dir)
-            subprocess.Popen('powershell "($WebClient = New-Object System.Net.WebClient).DownloadFile(\'' + url + '\', \'tmp.bin\')" && del soundcloud_dl.exe && ren tmp.bin soundcloud_dl.exe && echo Successful update && start soundcloud_dl.exe', shell=True, cwd=os.path.dirname(sys.argv[0]))
+            subprocess.Popen('powershell "($WebClient = New-Object System.Net.WebClient).DownloadFile(\'' + url + '\', \'tmp.bin\')" && del soundcloud_dl.exe && ren tmp.bin soundcloud_dl.exe && echo Successful update && start soundcloud_dl.exe', shell=True, cwd=program_directory_path)
             sys.exit(0)
         else:
             print("No updates found.")
@@ -53,11 +62,51 @@ if(len(sys.argv) >= 2):
         print()
         print("Version " + native_version)
         sys.exit(0)
-
-import urllib
-import re
-import traceback
-from tqdm import tqdm
+    if(argv == "--ffmpeg-download"):
+        print()
+        print()
+        print("Downloading list...")
+        import zipfile
+        import shutil
+        request_url = "https://inkuringu-ika.github.io/api/soundcloud_dl-ffmpeg-download-url.json"
+        try:
+            r = requests.get(request_url, stream=True, timeout=10)
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
+        except:
+            print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
+            traceback.print_exc()
+            sys.exit(1)
+        print("Downloading ffmpeg...")
+        request_url = json.loads(r.text)["url"]
+        filepath = program_directory_path + "\\" + json.loads(r.text)["filename"] + ".zip"
+        filename = json.loads(r.text)["filename"]
+        try:
+            r = requests.get(request_url, stream=True, timeout=10)
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
+        except:
+            print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
+            traceback.print_exc()
+            sys.exit(1)
+        pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
+        with open(filepath, 'wb') as file:
+            for chunk in r.iter_content(chunk_size=1024):
+                file.write(chunk)
+                pbar.update(len(chunk))
+            pbar.close()
+        with zipfile.ZipFile(filepath) as open_zip:
+            open_zip.extract(filename + "/bin/ffmpeg.exe", program_directory_path)
+        try:
+            os.remove(program_directory_path + "\\ffmpeg.exe")
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
+        except:
+            pass
+        shutil.move(program_directory_path + "\\" + filename + "\\bin\\ffmpeg.exe", program_directory_path + "\\")
+        os.remove(filepath)
+        shutil.rmtree(program_directory_path + "\\" + filename + "\\")
+        sys.exit(0)
 
 class Exit(Exception):
     pass
@@ -224,31 +273,57 @@ for json_result_split_onedata in json_result_split:
         else:
             print(Fore.YELLOW + 'Not a free download!' + Style.RESET_ALL)
             filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json2[0]["title"] + ".mp3")
-            request_url = json2[0]["media"]["transcodings"][1]["url"] + '?client_id=' + client_id
-            try:
-                r = requests.get(request_url, timeout=10)
-            except KeyboardInterrupt:
-                raise KeyboardInterrupt
-            except:
-                print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
-                traceback.print_exc()
-                raise Exit
-            url = json.loads(r.text)["url"]
-            request_url = url
-            try:
-                r = requests.get(request_url, stream=True, timeout=10)
-            except KeyboardInterrupt:
-                raise KeyboardInterrupt
-            except:
-                print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
-                traceback.print_exc()
-                raise Exit
-            pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
-            with open(filename, 'wb') as file:
-                for chunk in r.iter_content(chunk_size=1024):
-                    file.write(chunk)
-                    pbar.update(len(chunk))
-                pbar.close()
+            for transcoding in json2[0]["media"]["transcodings"]:
+                if(transcoding["format"]["protocol"] == "progressive"):
+                    request_url = transcoding["url"] + '?client_id=' + client_id
+                    break
+                else:
+                    request_url = "null"
+            if(request_url == "null"):
+                request_url = json2[0]["media"]["transcodings"][0]["url"] + '?client_id=' + client_id
+                try:
+                    r = requests.get(request_url, timeout=10)
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
+                except:
+                    print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
+                    traceback.print_exc()
+                    raise Exit
+                request_url = json.loads(r.text)["url"]
+                ffmpeg_path = program_directory_path + "\\ffmpeg.exe"
+                if(os.path.isfile(ffmpeg_path)):
+                    print("ffmpeg_path: " + ffmpeg_path)
+                    subprocess.call([ffmpeg_path,"-y","-i",request_url,"-c","copy",filename])
+                else:
+                    print(Fore.YELLOW + "FFmpeg is required to download this audio." + Style.RESET_ALL)
+                    print(Fore.YELLOW + "Download FFmpeg using the --ffmpeg-download option." + Style.RESET_ALL)
+                    raise Exit
+            else:
+                #request_url = json2[0]["media"]["transcodings"][1]["url"]
+                try:
+                    r = requests.get(request_url, timeout=10)
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
+                except:
+                    print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
+                    traceback.print_exc()
+                    raise Exit
+                url = json.loads(r.text)["url"]
+                request_url = url
+                try:
+                    r = requests.get(request_url, stream=True, timeout=10)
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
+                except:
+                    print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
+                    traceback.print_exc()
+                    raise Exit
+                pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
+                with open(filename, 'wb') as file:
+                    for chunk in r.iter_content(chunk_size=1024):
+                        file.write(chunk)
+                        pbar.update(len(chunk))
+                    pbar.close()
     except KeyboardInterrupt:
         sys.exit(0)
     except Exit:

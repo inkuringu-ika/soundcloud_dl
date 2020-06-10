@@ -2,7 +2,7 @@ Translated to English using google translate.
 
 How to use
 --------------------------------------------------
-Execute soundcloud_dl.py and enter the URL to start downloading.
+Execute soundcloud_dl.py or soundcloud_dl.exe and enter the URL to start downloading.
 
 option
 --------------------------------------------------

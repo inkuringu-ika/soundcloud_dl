@@ -19,29 +19,27 @@ if getattr(sys, 'frozen', False):
 else:
     program_directory_path = os.path.dirname(os.path.abspath(__file__))
 
-native_version = "4.0.0"
+native_version = "5.0.0"
 
 if(len(sys.argv) >= 2):
     argv = sys.argv[1]
+    print()
+    print()
     if(argv == "-C"):
-        print()
-        print()
         print('soundcloud_dl: Copyright (c) 2020 inkuringu-ika    GNU GENERAL PUBLIC LICENSE Version 3')
         print('Colorama: Copyright (c) 2010 Jonathan Hartley    BSD 3-Clause "New" or "Revised" License')
         print('Requests: Copyright (c) 2019 Kenneth Reitz    Apache License Version 2.0')
         print('tqdm: Copyright (c) 2013 noamraph    MIT License , Mozilla Public Licence v2.0')
         sys.exit(0)
     if(argv == "-U"):
-        print()
-        print()
         print("Checking for updates...")
         try:
             r = requests.get("https://api.github.com/repos/inkuringu-ika/soundcloud_dl/releases/latest")
         except KeyboardInterrupt:
-            sys.exit(0)
+            raise KeyboardInterrupt
         except:
             print(Fore.RED + "Failed to check for updates." + Style.RESET_ALL)
-            sys.exit(1)
+            os._exit(1)
         latest_version = json.loads(r.text)["tag_name"][1:]
         print("native_version: " + native_version)
         print("latest_version: " + latest_version)
@@ -53,18 +51,14 @@ if(len(sys.argv) >= 2):
             url = json.loads(r.text)["assets"][0]["browser_download_url"]
             #subprocess.Popen('curl -o tmp.bin -L "' + url + '" > && del soundcloud_dl.exe && ren tmp.bin soundcloud_dl.exe', shell=True, cwd=dir)
             subprocess.Popen('powershell "($WebClient = New-Object System.Net.WebClient).DownloadFile(\'' + url + '\', \'tmp.bin\')" && del soundcloud_dl.exe && ren tmp.bin soundcloud_dl.exe && echo Successful update && start soundcloud_dl.exe', shell=True, cwd=program_directory_path)
-            sys.exit(0)
+            os._exit(0)
         else:
             print("No updates found.")
-            sys.exit(0)
+            os._exit(0)
     if(argv == "-V"):
-        print()
-        print()
         print("Version " + native_version)
-        sys.exit(0)
+        os._exit(0)
     if(argv == "--ffmpeg-download"):
-        print()
-        print()
         print("Downloading list...")
         import zipfile
         import shutil
@@ -76,7 +70,7 @@ if(len(sys.argv) >= 2):
         except:
             print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
             traceback.print_exc()
-            sys.exit(1)
+            os._exit(1)
         print("Downloading ffmpeg...")
         request_url = json.loads(r.text)["url"]
         filepath = program_directory_path + "\\" + json.loads(r.text)["filename"] + ".zip"
@@ -88,7 +82,7 @@ if(len(sys.argv) >= 2):
         except:
             print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
             traceback.print_exc()
-            sys.exit(1)
+            os._exit(1)
         pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
         with open(filepath, 'wb') as file:
             for chunk in r.iter_content(chunk_size=1024):
@@ -106,10 +100,8 @@ if(len(sys.argv) >= 2):
         shutil.move(program_directory_path + "\\" + filename + "\\bin\\ffmpeg.exe", program_directory_path + "\\")
         os.remove(filepath)
         shutil.rmtree(program_directory_path + "\\" + filename + "\\")
-        sys.exit(0)
-
-class Exit(Exception):
-    pass
+        print("Successful update")
+        os._exit(0)
 
 #for test
 #client_id = '00000000000000000000000000000000'
@@ -127,143 +119,157 @@ client_id = 'LBCcHmRB8XSStWL6wKH2HPACspQlXg2P'
 
 
 userinput = input('url>>')
-
 inputurl = userinput
 
+if(urllib.parse.urlparse(userinput).netloc == "soundcloud.com"):
+    pass
+elif(urllib.parse.urlparse(userinput).netloc == "m.soundcloud.com"):
+    inputurl_parse = urllib.parse.urlparse(inputurl)
+    inputurl = urllib.parse.ParseResult(inputurl_parse.scheme, "soundcloud.com", inputurl_parse.path, inputurl_parse.params, inputurl_parse.query, inputurl_parse.fragment).geturl()
+elif("soundcloud.com" in urllib.parse.urlparse(userinput).netloc):
+    print(Fore.YELLOW + 'Error: Unsupported url' + Style.RESET_ALL)
+    os._exit(1)
+else:
+    print(Fore.RED + 'Error: Url is wrong' + Style.RESET_ALL)
+    os._exit(1)
+
+#app_version
 try:
-    if(urllib.parse.urlparse(userinput).netloc == "soundcloud.com"):
-        pass
-    elif(urllib.parse.urlparse(userinput).netloc == "m.soundcloud.com"):
-        inputurl_parse = urllib.parse.urlparse(inputurl)
-        inputurl = urllib.parse.ParseResult(inputurl_parse.scheme, "soundcloud.com", inputurl_parse.path, inputurl_parse.params, inputurl_parse.query, inputurl_parse.fragment).geturl()
-    elif("soundcloud.com" in urllib.parse.urlparse(userinput).netloc):
-        print(Fore.YELLOW + 'Error: Unsupported url' + Style.RESET_ALL)
-        raise Exit
-    else:
-        print(Fore.RED + 'Error: Url is wrong' + Style.RESET_ALL)
-        raise Exit
+    request_url = "https://soundcloud.com/version.txt"
+    r = requests.get(request_url, timeout=10)
+    r.raise_for_status()
+except KeyboardInterrupt:
+    raise KeyboardInterrupt
+except requests.RequestException:
+    print("status_code:" + str(r.status_code))
+    print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+    os._exit(1)
+except:
+    print(Fore.RED + 'Error: Connection error' + Style.RESET_ALL)
+    traceback.print_exc()
+    os._exit(1)
+app_version = r.text
+
+#get meta
+request_url = "https://api-v2.soundcloud.com/resolve?url=" + inputurl + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
+try:
+    r = requests.get(request_url, timeout=10)
+    r.raise_for_status()
+except KeyboardInterrupt:
+    raise KeyboardInterrupt
+except requests.RequestException:
+    print("status_code:" + str(r.status_code))
+    print(Fore.RED + 'Error: Url is wrong' + Style.RESET_ALL)
+    os._exit(1)
+except:
+    print(Fore.RED + 'Error: Connection error' + Style.RESET_ALL)
+    traceback.print_exc()
+    os._exit(1)
+json_result = json.loads(r.text)
+
+if(json_result["kind"] == "track"):
+    json_result_split = [json_result]
+elif(json_result["kind"] == "playlist"):
+    json_result_split = json_result["tracks"]
+elif(json_result["kind"] == "user"):
+    userid = str(json_result["id"])
+    request_url = "https://api-v2.soundcloud.com/users/" + userid + "/tracks?representation=&client_id=" + client_id + "&limit=20&offset=0&linked_partitioning=1&app_version=" + app_version + "&app_locale=en"
     try:
-        request_url = inputurl
         r = requests.get(request_url, timeout=10)
         r.raise_for_status()
     except KeyboardInterrupt:
         raise KeyboardInterrupt
     except requests.RequestException:
         print("status_code:" + str(r.status_code))
-        print(Fore.RED + 'Error: Url is wrong' + Style.RESET_ALL)
-        raise Exit
+        print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+        os._exit(1)
     except:
-        print(Fore.RED + 'Error: Connection error' + Style.RESET_ALL)
+        print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
         traceback.print_exc()
-        raise Exit
-    
-    try:
-        json_result = json.loads(re.search('e.data.forEach\(function\(e\){n\(e\)}\)}catch\(t\){}}\)},(.*)\);', r.text).group(1))[-1]
-    except KeyboardInterrupt:
-        raise KeyboardInterrupt
-    except:
-        print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
-        traceback.print_exc()
-        raise Exit
-    
-    #app_version
-    try:
-        #https://soundcloud.com/version.txt
-        #request_url = "https://soundcloud.com/"
-        app_version = re.search('window.__sc_version = "(.*)";</script>', r.text).group(1)
-        print("app_version: " + app_version)
-    except KeyboardInterrupt:
-        raise KeyboardInterrupt
-    except:
-        print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
-        traceback.print_exc()
-        raise Exit
-    
-    if(json_result["data"][0]["kind"] == "track"):
-        json_result_split = json_result["data"]
-    elif(json_result["data"][0]["kind"] == "playlist"):
-        json_result_split = json_result["data"][0]["tracks"]
-    elif(json_result["data"][0]["kind"] == "user"):
-        userid = str(json_result["data"][0]["id"])
-        request_url = "https://api-v2.soundcloud.com/users/" + userid + "/tracks?representation=&client_id=" + client_id + "&limit=20&offset=0&linked_partitioning=1&app_version=" + app_version + "&app_locale=en"
+        os._exit(1)
+    json_result_user = json.loads(r.text)
+    json_result_split = json_result_user["collection"]
+    while True:
+        request_url = json_result_user["next_href"] + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
         try:
             r = requests.get(request_url, timeout=10)
+            r.raise_for_status()
         except KeyboardInterrupt:
             raise KeyboardInterrupt
+        except requests.RequestException:
+            print("status_code:" + str(r.status_code))
+            print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+            os._exit(1)
         except:
             print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
             traceback.print_exc()
-            raise Exit
-        json1 = json.loads(r.text)
-        json_result_split = json1["collection"]
-        while True:
-            request_url = json1["next_href"] + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
-            try:
-                r = requests.get(request_url, timeout=10)
-            except KeyboardInterrupt:
-                raise KeyboardInterrupt
-            except:
-                print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
-                traceback.print_exc()
-                raise Exit
-            json1 = json.loads(r.text)
-            if(json1["next_href"]):
-                json_result_split = json_result_split + json1["collection"]
-            else:
-                break
-    else:
-        print(Fore.YELLOW + 'Error: Unsupported url' + Style.RESET_ALL)
-        raise Exit
-except Exit:
-    sys.exit(1)
-except KeyboardInterrupt:
-    sys.exit(0)
-except:
-    print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
-    traceback.print_exc()
-    sys.exit(1)
+            os._exit(1)
+        json_result_user = json.loads(r.text)
+        if(json_result_user["next_href"]):
+            json_result_split = json_result_split + json_result_user["collection"]
+        else:
+            break
+else:
+    print(Fore.YELLOW + 'Error: Unsupported url' + Style.RESET_ALL)
+    os._exit(1)
 
-
+class skip(Exception):
+    pass
 for json_result_split_onedata in json_result_split:
     try:
         print("downloading...")
-        if(json_result_split_onedata["streamable"]):
-            pass
-        else:
-            print(Fore.YELLOW + "Stream unable!" + Style.RESET_ALL)
-            raise Exit
         Noid = str(json_result_split_onedata["id"])
         print("Track ID: " + Noid)
-        request_url = 'https://api-v2.soundcloud.com/tracks?ids=' + Noid + '&client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
+        request_url = 'https://api-v2.soundcloud.com/tracks/' + Noid + '?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
         try:
             r = requests.get(request_url, timeout=10)
+            r.raise_for_status()
         except KeyboardInterrupt:
             raise KeyboardInterrupt
+        except requests.RequestException:
+            print("status_code:" + str(r.status_code))
+            print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+            raise skip
         except:
             print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
             traceback.print_exc()
-            raise Exit
-        json2 = json.loads(r.text)
-        if(json2[0]["downloadable"] and json2[0]["has_downloads_left"]):
+            raise skip
+        json_result_track_meta = json.loads(r.text)
+        if(json_result_track_meta["streamable"]):
+            pass
+        else:
+            print(Fore.YELLOW + "Stream unable!" + Style.RESET_ALL)
+            raise skip
+        if(json_result_track_meta["downloadable"] and json_result_track_meta["has_downloads_left"]):
             request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
             try:
                 r = requests.get(request_url, timeout=10)
+                r.raise_for_status()
             except KeyboardInterrupt:
                 raise KeyboardInterrupt
+            except requests.RequestException:
+                print("status_code:" + str(r.status_code))
+                print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                raise skip
             except:
                 print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
                 traceback.print_exc()
-                raise Exit
+                raise skip
             request_url = json.loads(r.text)["redirectUri"]
             try:
                 r = requests.get(request_url, stream=True, timeout=10)
+                r.raise_for_status()
             except KeyboardInterrupt:
                 raise KeyboardInterrupt
+            except requests.RequestException:
+                print("status_code:" + str(r.status_code))
+                print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                raise skip
             except:
                 print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
                 traceback.print_exc()
-                raise Exit
-            filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json2[0]["title"] + "." + r.headers["content-disposition"][r.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"").split(".")[-1])
+                raise skip
+            filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json_result_track_meta["title"] + "." + r.headers["content-disposition"][r.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"").split(".")[-1])
             pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
             with open(filename, 'wb') as file:
                 for chunk in r.iter_content(chunk_size=1024):
@@ -272,23 +278,69 @@ for json_result_split_onedata in json_result_split:
                 pbar.close()
         else:
             print(Fore.YELLOW + 'Not a free download!' + Style.RESET_ALL)
-            filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json2[0]["title"] + ".mp3")
-            for transcoding in json2[0]["media"]["transcodings"]:
-                if(transcoding["format"]["protocol"] == "progressive"):
-                    request_url = transcoding["url"] + '?client_id=' + client_id
-                    break
-                else:
-                    request_url = "null"
-            if(request_url == "null"):
-                request_url = json2[0]["media"]["transcodings"][0]["url"] + '?client_id=' + client_id
+            filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",json_result_track_meta["title"] + ".mp3")
+            hls_active = 0
+            progressive_active = 0
+            format_for_count = 0
+            for transcoding in json_result_track_meta["media"]["transcodings"]:
+                if(transcoding["format"]["protocol"] == "hls" and transcoding["format"]["mime_type"] == "audio/mpeg"):
+                    hls_active = 1
+                    hls_active_count = format_for_count
+                elif(transcoding["format"]["protocol"] == "progressive" and transcoding["format"]["mime_type"] == "audio/mpeg"):
+                    progressive_active = 1
+                    progressive_active_count = format_for_count
+                format_for_count = format_for_count + 1
+            if(progressive_active == 1):
+                request_url = json_result_track_meta["media"]["transcodings"][progressive_active_count]["url"] + '?client_id=' + client_id
                 try:
                     r = requests.get(request_url, timeout=10)
+                    r.raise_for_status()
                 except KeyboardInterrupt:
                     raise KeyboardInterrupt
+                except requests.RequestException:
+                    print("status_code:" + str(r.status_code))
+                    print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                    raise skip
                 except:
                     print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
                     traceback.print_exc()
-                    raise Exit
+                    raise skip
+                url = json.loads(r.text)["url"]
+                request_url = url
+                try:
+                    r = requests.get(request_url, stream=True, timeout=10)
+                    r.raise_for_status()
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
+                except requests.RequestException:
+                    print("status_code:" + str(r.status_code))
+                    print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                    raise skip
+                except:
+                    print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
+                    traceback.print_exc()
+                    raise skip
+                pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
+                with open(filename, 'wb') as file:
+                    for chunk in r.iter_content(chunk_size=1024):
+                        file.write(chunk)
+                        pbar.update(len(chunk))
+                    pbar.close()
+            elif(hls_active == 1):
+                request_url = json_result_track_meta["media"]["transcodings"][hls_active_count]["url"] + '?client_id=' + client_id
+                try:
+                    r = requests.get(request_url, timeout=10)
+                    r.raise_for_status()
+                except KeyboardInterrupt:
+                    raise KeyboardInterrupt
+                except requests.RequestException:
+                    print("status_code:" + str(r.status_code))
+                    print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                    raise skip
+                except:
+                    print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
+                    traceback.print_exc()
+                    raise skip
                 request_url = json.loads(r.text)["url"]
                 ffmpeg_path = program_directory_path + "\\ffmpeg.exe"
                 if(os.path.isfile(ffmpeg_path)):
@@ -297,36 +349,13 @@ for json_result_split_onedata in json_result_split:
                 else:
                     print(Fore.YELLOW + "FFmpeg is required to download this audio." + Style.RESET_ALL)
                     print(Fore.YELLOW + "Download FFmpeg using the --ffmpeg-download option." + Style.RESET_ALL)
-                    raise Exit
+                    raise skip
             else:
-                #request_url = json2[0]["media"]["transcodings"][1]["url"]
-                try:
-                    r = requests.get(request_url, timeout=10)
-                except KeyboardInterrupt:
-                    raise KeyboardInterrupt
-                except:
-                    print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
-                    traceback.print_exc()
-                    raise Exit
-                url = json.loads(r.text)["url"]
-                request_url = url
-                try:
-                    r = requests.get(request_url, stream=True, timeout=10)
-                except KeyboardInterrupt:
-                    raise KeyboardInterrupt
-                except:
-                    print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
-                    traceback.print_exc()
-                    raise Exit
-                pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
-                with open(filename, 'wb') as file:
-                    for chunk in r.iter_content(chunk_size=1024):
-                        file.write(chunk)
-                        pbar.update(len(chunk))
-                    pbar.close()
+                 print(Fore.YELLOW + "Error: Not supported type" + Style.RESET_ALL)
+                 raise skip
     except KeyboardInterrupt:
-        sys.exit(0)
-    except Exit:
+        raise KeyboardInterrupt
+    except skip:
         pass
     except:
         print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)

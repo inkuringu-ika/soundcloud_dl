@@ -1,9 +1,4 @@
 try:
-    #
-    print('Copyright (c) 2020 inkuringu-ika')
-    print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
-    #
-    print()
     import sys
     import json
     import requests
@@ -19,7 +14,11 @@ try:
         program_directory_path = os.path.dirname(os.path.abspath(sys.executable))
     else:
         program_directory_path = os.path.dirname(os.path.abspath(__file__))
-    
+    #
+    print('Copyright (c) 2020 inkuringu-ika')
+    print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
+    print()
+    #
     native_version = "5.2.0"
     
     if(len(sys.argv) >= 2):
@@ -391,6 +390,7 @@ except KeyboardInterrupt:
     os._exit(0)
 except:
     print(Fore.RED + 'Error: Unexpected error' + Style.RESET_ALL)
+    import traceback
     traceback.print_exc()
     import os
     os._exit(1)

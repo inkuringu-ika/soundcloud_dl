@@ -8,6 +8,8 @@ option
 --------------------------------------------------
 soundcloud_dl.exe [option]
 soundcloud_dl.py [option]
--U: Update (Experimental option)
--C: Copyright view
--V: Version view
+-h,--help: Show usage
+-C,--copyright: Show copyright
+-V,--version: Show version
+-U,--update: Update (Experimental option)
+--ffmpeg-download: Download ffmpeg

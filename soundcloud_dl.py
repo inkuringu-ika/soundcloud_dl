@@ -19,7 +19,7 @@ try:
     print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
     print()
     #
-    native_version = "5.2.0"
+    native_version = "5.2.1"
     
     if(len(sys.argv) >= 2):
         argv = sys.argv[1]

@@ -19,7 +19,7 @@ try:
     print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
     print()
     #
-    native_version = "5.2.1"
+    native_version = "5.2.2"
     
     if(len(sys.argv) >= 2):
         argv = sys.argv[1]
@@ -47,7 +47,7 @@ try:
                 raise KeyboardInterrupt
             except requests.RequestException:
                 print("status_code:" + str(r.status_code))
-                print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                 os._exit(1)
             except:
                 print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
@@ -84,7 +84,7 @@ try:
                 raise KeyboardInterrupt
             except requests.RequestException:
                 print("status_code:" + str(r.status_code))
-                print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                 os._exit(1)
             except:
                 print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
@@ -101,7 +101,7 @@ try:
                 raise KeyboardInterrupt
             except requests.RequestException:
                 print("status_code:" + str(r.status_code))
-                print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                 os._exit(1)
             except:
                 print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
@@ -127,15 +127,15 @@ try:
             print("Successful update")
             os._exit(0)
     
-    #for test
+    #test
     #client_id = '00000000000000000000000000000000'
     
     #browser
-    #client_id = 'oFMSnVZoxS9WWBM4SpSI6t67QeJOKGvd'
-    #client_id = '7z0rxinRI8F4NJnJYPokHFNqPSi0qraJ'
-    #client_id = 'PANENeeumEFxeUKuTj575zguSBQI5DwE'
+    #client_id = 'dy9eAxkjJA9vtNqsYKJiGtdJW0l7lwot'
+    #client_id = 'COG3S6ROTu4KtGkqxFqaXp6Tur9y6R1V'
     
     #ios app
+    #client_id = 'Fiy8xlRI0xJNNGDLbPmGUjTpPRESPx8C'
     #client_id = 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX'
     
     #widget
@@ -165,13 +165,15 @@ try:
         raise KeyboardInterrupt
     except requests.RequestException:
         print("status_code:" + str(r.status_code))
-        print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+        print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
         os._exit(1)
     except:
         print(Fore.RED + 'Error: Connection error' + Style.RESET_ALL)
         traceback.print_exc()
         os._exit(1)
     app_version = r.text
+    print("app_version: " + app_version)
+    print("client_id: " + client_id)
     
     #get meta
     request_url = "https://api-v2.soundcloud.com/resolve?url=" + inputurl + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
@@ -204,7 +206,7 @@ try:
             raise KeyboardInterrupt
         except requests.RequestException:
             print("status_code:" + str(r.status_code))
-            print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+            print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
             os._exit(1)
         except:
             print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
@@ -212,6 +214,7 @@ try:
             os._exit(1)
         json_result_user = json.loads(r.text)
         json_result_split = json_result_user["collection"]
+        print("Downloading track list")
         while True:
             request_url = json_result_user["next_href"] + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
             try:
@@ -221,7 +224,7 @@ try:
                 raise KeyboardInterrupt
             except requests.RequestException:
                 print("status_code:" + str(r.status_code))
-                print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                 os._exit(1)
             except:
                 print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
@@ -251,18 +254,24 @@ try:
                 raise KeyboardInterrupt
             except requests.RequestException:
                 print("status_code:" + str(r.status_code))
-                print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                 raise skip
             except:
                 print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
                 traceback.print_exc()
                 raise skip
             json_result_track_meta = json.loads(r.text)
-            if(json_result_track_meta["streamable"]):
-                pass
-            else:
-                print(Fore.YELLOW + "Stream unable!" + Style.RESET_ALL)
+            if(not json_result_track_meta["streamable"]):
+                print(Fore.YELLOW + "Stream is not available." + Style.RESET_ALL)
                 raise skip
+            else:
+                pass
+            if(json_result_track_meta["policy"] == "BLOCK"):
+                print(Fore.YELLOW + "The download of this track is blocked in your country." + Style.RESET_ALL)
+                print(Fore.YELLOW + "If you want to download it, use a VPN or proxy." + Style.RESET_ALL)
+                raise skip
+            else:
+                pass
             if(json_result_track_meta["downloadable"] and json_result_track_meta["has_downloads_left"]):
                 request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
                 try:
@@ -272,7 +281,7 @@ try:
                     raise KeyboardInterrupt
                 except requests.RequestException:
                     print("status_code:" + str(r.status_code))
-                    print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                    print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                     raise skip
                 except:
                     print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
@@ -286,7 +295,7 @@ try:
                     raise KeyboardInterrupt
                 except requests.RequestException:
                     print("status_code:" + str(r.status_code))
-                    print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                    print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                     raise skip
                 except:
                     print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
@@ -322,7 +331,7 @@ try:
                         raise KeyboardInterrupt
                     except requests.RequestException:
                         print("status_code:" + str(r.status_code))
-                        print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                        print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                         raise skip
                     except:
                         print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
@@ -337,7 +346,7 @@ try:
                         raise KeyboardInterrupt
                     except requests.RequestException:
                         print("status_code:" + str(r.status_code))
-                        print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                        print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                         raise skip
                     except:
                         print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)
@@ -358,7 +367,7 @@ try:
                         raise KeyboardInterrupt
                     except requests.RequestException:
                         print("status_code:" + str(r.status_code))
-                        print(Fore.RED + 'Error: status code error' + Style.RESET_ALL)
+                        print(Fore.RED + 'Error: Status code error' + Style.RESET_ALL)
                         raise skip
                     except:
                         print(Fore.RED + "Error: Connection error" + Style.RESET_ALL)

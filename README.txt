@@ -11,5 +11,3 @@ soundcloud_dl.py [option]
 -h,--help: Show usage
 -C,--copyright: Show copyright
 -V,--version: Show version
--U,--update: Update (Experimental option)
---ffmpeg-download: Download ffmpeg

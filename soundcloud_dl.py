@@ -18,7 +18,7 @@ print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
 print()
 
-native_version = "6.0.0"
+native_version = "6.1.0"
 
 def client_id():
     global status_code
@@ -118,32 +118,46 @@ def download_track(track_info):
                 print("ffmpeg_path: " + ffmpeg_path)
                 subprocess.call([ffmpeg_path,"-y","-i",request_url,"-c","copy",filename])
             else:
-                print(Fore.YELLOW + "FFmpeg is required to download this audio." + Style.RESET_ALL)
+                #print(Fore.YELLOW + "FFmpeg is required to download this audio." + Style.RESET_ALL)
+                print(Fore.YELLOW + "Download using the built-in hls downloader. Use ffmpeg if it does not download properly." + Style.RESET_ALL)
+                r = requests.get(request_url)
+                file = open(filename,mode="wb")
+                for for_data in r.text.split("\n"):
+                    if(not for_data[0] == "#"):
+                        print("Downloading segment...")
+                        r = requests.get(for_data,timeout=10)
+                        status_code = r.status_code
+                        r.raise_for_status()
+                        print("Writing to file...")
+                        file.write(r.content)
+                file.close()
         else:
             print(Fore.YELLOW + "Error: Not supported type" + Style.RESET_ALL)
 
 if(len(sys.argv) > 1):
-    argv = sys.argv[1]
-    if(argv == "-h" or argv == "--help"):
-        print("soundcloud_dl.py [option]")
-        print("soundcloud_dl.exe [option]")
-        print("-h,--help: Show usage")
-        print("-C,--copyright: Show copyright")
-        print("-V,--version: Show version")
-        print("-U,--update: Update (Experimental option)")
-        print("--ffmpeg-download: Download ffmpeg")
-        sys.exit(1)
-    if(argv == "-C" or argv == "--copyright"):
-        print('soundcloud_dl: Copyright (c) 2020 inkuringu-ika    GNU GENERAL PUBLIC LICENSE Version 3')
-        print('Colorama: Copyright (c) 2010 Jonathan Hartley    BSD 3-Clause "New" or "Revised" License')
-        print('Requests: Copyright (c) 2019 Kenneth Reitz    Apache License Version 2.0')
-        print('tqdm: Copyright (c) 2013 noamraph    MIT License , Mozilla Public Licence v2.0')
-        sys.exit(1)
-    if(argv == "-V" or argv == "--version"):
-        print("Version " + native_version)
-        sys.exit(1)
-
-userinput = input('url>>')
+    for argv in sys.argv[1:]:
+        if(argv == "-h" or argv == "--help"):
+            print("soundcloud_dl.py [option]")
+            print("soundcloud_dl.exe [option]")
+            print("-h,--help: Show usage")
+            print("-C,--copyright: Show copyright")
+            print("-V,--version: Show version")
+            print("-U,--update: Update (Experimental option)")
+            print("--ffmpeg-download: Download ffmpeg")
+            sys.exit(1)
+        elif(argv == "-C" or argv == "--copyright"):
+            print('soundcloud_dl: Copyright (c) 2020 inkuringu-ika    GNU GENERAL PUBLIC LICENSE Version 3')
+            print('Colorama: Copyright (c) 2010 Jonathan Hartley    BSD 3-Clause "New" or "Revised" License')
+            print('Requests: Copyright (c) 2019 Kenneth Reitz    Apache License Version 2.0')
+            print('tqdm: Copyright (c) 2013 noamraph    MIT License , Mozilla Public Licence v2.0')
+            sys.exit(1)
+        elif(argv == "-V" or argv == "--version"):
+            print("Version " + native_version)
+            sys.exit(1)
+        else:
+            userinput = argv
+else:
+    userinput = input('url>>')
 
 
 try:

@@ -18,7 +18,7 @@ print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
 print()
 
-native_version = "6.1.0"
+native_version = "6.1.1"
 requests_option = {
     'Accept':'*/*',
     'Accept-Encoding':'gzip, deflate, br',

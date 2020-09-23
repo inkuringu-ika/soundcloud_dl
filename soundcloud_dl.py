@@ -19,11 +19,22 @@ print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3
 print()
 
 native_version = "6.1.0"
+requests_option = {
+    'Accept':'*/*',
+    'Accept-Encoding':'gzip, deflate, br',
+    'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+}
 
 def client_id():
-    global status_code
+    requests_option = {
+        'Accept':'*/*',
+        'Accept-Encoding':'gzip, deflate, br',
+        'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+    }
     request_url = "https://inkuringu-ika.github.io/api/soundcloud-client_id.json"
-    r = requests.get(request_url, timeout=10)
+    r = requests.get(request_url, headers=requests_option, timeout=10)
     status_code = r.status_code
     r.raise_for_status()
     for for_json in json.loads(r.text):
@@ -31,28 +42,44 @@ def client_id():
             return for_json["client_id"]
 
 def app_version():
-    global status_code
+    requests_option = {
+        'Accept':'*/*',
+        'Accept-Encoding':'gzip, deflate, br',
+        'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+    }
     request_url = "https://soundcloud.com/version.txt"
-    r = requests.get(request_url, timeout=10)
+    r = requests.get(request_url, headers=requests_option, timeout=10)
     status_code = r.status_code
     r.raise_for_status()
     return r.text
 
 def get_info(inputurl):
     global status_code
+    requests_option = {
+        'Accept':'*/*',
+        'Accept-Encoding':'gzip, deflate, br',
+        'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+    }
     request_url = "https://api-v2.soundcloud.com/resolve?url=" + inputurl + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
-    r = requests.get(request_url, timeout=10)
+    r = requests.get(request_url, headers=requests_option, timeout=10)
     status_code = r.status_code
     r.raise_for_status()
     return json.loads(r.text)
 
 def download_track(track_info):
-    global status_code
+    requests_option = {
+        'Accept':'*/*',
+        'Accept-Encoding':'gzip, deflate, br',
+        'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+    }
     print("downloading...")
     Noid = str(track_info["id"])
     print("Track ID: " + Noid)
     request_url = 'https://api-v2.soundcloud.com/tracks/' + Noid + '?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
-    r = requests.get(request_url, timeout=10)
+    r = requests.get(request_url, headers=requests_option, timeout=10)
     status_code = r.status_code
     r.raise_for_status()
     track_info_2 = json.loads(r.text)
@@ -64,11 +91,11 @@ def download_track(track_info):
         return
     if(track_info_2["downloadable"] and track_info_2["has_downloads_left"]):
         request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
-        r = requests.get(request_url, timeout=10)
+        r = requests.get(request_url, headers=requests_option, timeout=10)
         status_code = r.status_code
         r.raise_for_status()
         request_url = json.loads(r.text)["redirectUri"]
-        r = requests.get(request_url, stream=True, timeout=10)
+        r = requests.get(request_url, headers=requests_option, stream=True, timeout=10)
         status_code = r.status_code
         r.raise_for_status()
         filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\||\n]',"_",track_info_2["title"] + "." + r.headers["content-disposition"][r.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"").split(".")[-1])
@@ -94,11 +121,11 @@ def download_track(track_info):
             format_for_count = format_for_count + 1
         if(progressive_active == 1):
             request_url = track_info_2["media"]["transcodings"][progressive_active_count]["url"] + '?client_id=' + client_id
-            r = requests.get(request_url, timeout=10)
+            r = requests.get(request_url, headers=requests_option, timeout=10)
             status_code = r.status_code
             r.raise_for_status()
             request_url = json.loads(r.text)["url"]
-            r = requests.get(request_url, stream=True, timeout=10)
+            r = requests.get(request_url, headers=requests_option, stream=True, timeout=10)
             status_code = r.status_code
             r.raise_for_status()
             pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
@@ -109,7 +136,7 @@ def download_track(track_info):
                 pbar.close()
         elif(hls_active == 1):
             request_url = track_info_2["media"]["transcodings"][hls_active_count]["url"] + '?client_id=' + client_id
-            r = requests.get(request_url, timeout=10)
+            r = requests.get(request_url, headers=requests_option, timeout=10)
             status_code = r.status_code
             r.raise_for_status()
             request_url = json.loads(r.text)["url"]
@@ -125,7 +152,7 @@ def download_track(track_info):
                 for for_data in r.text.split("\n"):
                     if(not for_data[0] == "#"):
                         print("Downloading segment...")
-                        r = requests.get(for_data,timeout=10)
+                        r = requests.get(for_data, headers=requests_option, timeout=10)
                         status_code = r.status_code
                         r.raise_for_status()
                         print("Writing to file...")
@@ -221,7 +248,7 @@ elif(json_result["kind"] == "user"):
     userid = str(json_result["id"])
     try:
         request_url = "https://api-v2.soundcloud.com/users/" + userid + "/tracks?representation=&client_id=" + client_id + "&limit=20&offset=0&linked_partitioning=1&app_version=" + app_version + "&app_locale=en"
-        r = requests.get(request_url, timeout=10)
+        r = requests.get(request_url, headers=requests_option, timeout=10)
         r.raise_for_status()
     except requests.exceptions.ConnectionError:
         print(Fore.RED + 'Error: network error.' + Style.RESET_ALL)
@@ -240,7 +267,7 @@ elif(json_result["kind"] == "user"):
     while True:
         try:
             request_url = json_result_user["next_href"] + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
-            r = requests.get(request_url, timeout=10)
+            r = requests.get(request_url, headers=requests_option, timeout=10)
             r.raise_for_status()
         except requests.exceptions.ConnectionError:
             print(Fore.RED + 'Error: network error.' + Style.RESET_ALL)

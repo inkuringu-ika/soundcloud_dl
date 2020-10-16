@@ -1,34 +1,40 @@
 soundcloud_dl
 --------------------------------------------------
 Copyright: Copyright (c) 2020 inkuringu-ika
-license: GNU GENERAL PUBLIC LICENSE Version 3 <https://www.gnu.org/licenses/gpl-3.0.html>
+License: GNU GENERAL PUBLIC LICENSE Version 3 <https://www.gnu.org/licenses/gpl-3.0.html>
 SourceCode: https://github.com/inkuringu-ika/soundcloud_dl
 
 Python
 --------------------------------------------------
 Copyright: Copyright (c) 2001-2020 Python Software Foundation
-license: Python Software Foundation License <https://docs.python.org/ja/3.7/license.html>
+License: Python Software Foundation License <https://docs.python.org/ja/3.7/license.html>
 
 FFmpeg
 --------------------------------------------------
 Copyright: Copyright (c) 2000-2020 the FFmpeg developers
-license: GNU GENERAL PUBLIC LICENSE Version 3 <https://www.gnu.org/licenses/gpl-3.0.html>
+License: GNU GENERAL PUBLIC LICENSE Version 3 <https://www.gnu.org/licenses/gpl-3.0.html>
 SourceCode: https://ffmpeg.org/releases/ffmpeg-4.2.2.tar.bz2
 
 Colorama
 --------------------------------------------------
 Copyright: Copyright (c) 2013 Jonathan Hartley & Arnon Yaari
-license: BSD 3-Clause "New" or "Revised" License <https://opensource.org/licenses/BSD-3-Clause>
+License: BSD 3-Clause "New" or "Revised" License <https://opensource.org/licenses/BSD-3-Clause>
 SourceCode: https://github.com/tartley/colorama
 
 Requests
 --------------------------------------------------
 Copyright: Copyright (c) 2019 Kenneth Reitz
-license: Apache License Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>
+License: Apache License Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>
 SourceCode: https://github.com/psf/requests
 
 tqdm
 --------------------------------------------------
 Copyright: Copyright (c) 2013 noamraph    Copyright (c) 2015-2020 Casper da Costa-Luis    Copyright (c) 2016 [PR #96] on behalf of Google Inc    Copyright (c) 2013 Noam Yorav-Raphael    [PR #96]: https://github.com/tqdm/tqdm/pull/96
-license: MIT License , Mozilla Public Licence v2.0
+License: MIT License , Mozilla Public Licence v2.0
 SourceCode: https://github.com/tqdm/tqdm
+
+BeautifulSoup
+--------------------------------------------------
+Copyright: Copyright (c) 2004-2019 Leonard Richardson
+License: MIT License
+SourceCode: https://bazaar.launchpad.net/~leonardr/beautifulsoup/bs4/files

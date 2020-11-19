@@ -6,7 +6,7 @@ import os
 import urllib
 import re
 import traceback
-from bs4 import BeautifulSoup
+import time
 from tqdm import tqdm
 from colorama import init, Fore, Style
 init()
@@ -19,9 +19,9 @@ print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
 print()
 
-native_version = "6.3.0"
+native_version = "7.0.0"
 if(program_directory_path == os.getcwd()):
-    if(not os.path.exists("./downloads/")):
+    if(not os.path.isdir("./downloads")):
         os.mkdir("./downloads")
     save_directory = "./downloads"
 else:
@@ -34,46 +34,71 @@ requests_option = {
 }
 
 def client_id():
+    print("Getting latest client_id...")
+    if(os.path.isfile(program_directory_path + "/client_id.json")):
+        f = open(program_directory_path + "/client_id.json")
+        data = f.read()
+        f.close()
+        data_json = json.loads(data)
+        if(data_json["generated_version"] == native_version and data_json["expires"] > int(time.time())):
+            return data_json["client_id"]
+        else:
+            pass
     requests_option = {
         'Accept':'*/*',
         'Accept-Encoding':'gzip, deflate, br',
         'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
     }
-    try:
-        print("Fetching latest client_id...")
-        request_url = "https://soundcloud.com/"
+    request_url = "https://soundcloud.com/"
+    r = requests.get(request_url, headers=requests_option, timeout=10)
+    status_code = r.status_code
+    r.raise_for_status()
+    #by youtube-dl
+    for src in reversed(re.findall(r'<script[^>]+src="([^"]+)"', r.content.decode())):
+        print("Downloading JavaScript...")
+        request_url = src
         r = requests.get(request_url, headers=requests_option, timeout=10)
         status_code = r.status_code
         r.raise_for_status()
-        soup = BeautifulSoup(r.text, "html.parser")
-        request_url = soup.find_all("script")[-2].get("src")
-        r = requests.get(request_url, headers=requests_option, timeout=10)
+        '''
+        r = requests.get(request_url, headers=requests_option, stream=True, timeout=10)
         status_code = r.status_code
         r.raise_for_status()
-        for for_data in r.text.split("{")[3].split("}")[0].split(","):
-            if(for_data.split(":")[0] == "client_id"):
-                #print(for_data.split(":")[1][1:][:-1])
-                #break
-                #testcode raise Exception
-                return for_data.split(":")[1][1:][:-1]
-        print(Fore.RED + "No Data" + Style.RESET_ALL)
-        raise Exception
-    except KeyboardInterrupt:
-        raise KeyboardInterrupt
-    except:
-        traceback.print_exc()
-        print(Fore.YELLOW + "Failed to get the latest client_id. Fetching old client_id..." + Style.RESET_ALL)
-        #github page
-        request_url = "https://inkuringu-ika.github.io/api/soundcloud-client_id.json"
-        r = requests.get(request_url, headers=requests_option, timeout=10)
-        status_code = r.status_code
-        r.raise_for_status()
-        for for_json in json.loads(r.text):
-            if(for_json["type"] == "pc_browser"):
-                return for_json["client_id"]
+        pbar = tqdm(unit="B", unit_scale=True)
+        javascript_text = ""
+        for chunk in r.iter_content(chunk_size=1024):
+            javascript_text += chunk.decode()
+            pbar.update(len(chunk))
+        pbar.close()
+        '''
+        #javascript_text = r.content.decode()
+        if(r.content.decode()):
+            print("Parsing JavaScript...")
+            #client_ids = re.findall(r'client_id\s*:\s*"([0-9a-zA-Z]{32})"',r.text)
+            re_result = re.search(r'client_id\s*:\s*"([0-9a-zA-Z]{32})"', r.content.decode())
+            if(re_result is not None):
+                client_id = re_result.group(1)
+                if(client_id):
+                    f = open(program_directory_path + "/client_id.json", 'w')
+                    f.write('{"client_id":"' + client_id + '","expires":' + str(int(time.time()) + 1209600)  + ',"generated_version":"' + native_version + '"}')
+                    f.close()
+                    return client_id
+                else:
+                    print(Fore.YELLOW + "Failed to get latest client_id" + Style.RESET_ALL)
+            else:
+                print(Fore.YELLOW + "Failed to get latest client_id" + Style.RESET_ALL)
+    print("Getting client_id that may be old...")
+    request_url = "https://inkuringu-ika.github.io/api/soundcloud-client_id.json"
+    r = requests.get(request_url, headers=requests_option, timeout=10)
+    status_code = r.status_code
+    r.raise_for_status()
+    for for_json in json.loads(r.content.decode()):
+        if(for_json["type"] == "pc_browser"):
+            return for_json["client_id"]
 
 def app_version():
+    print("Getting latest app_version...")
     requests_option = {
         'Accept':'*/*',
         'Accept-Encoding':'gzip, deflate, br',
@@ -84,10 +109,11 @@ def app_version():
     r = requests.get(request_url, headers=requests_option, timeout=10)
     status_code = r.status_code
     r.raise_for_status()
-    return r.text
+    return r.content.decode()
 
 def get_info(inputurl):
     global status_code
+    print("Downloading trackinfo...")
     requests_option = {
         'Accept':'*/*',
         'Accept-Encoding':'gzip, deflate, br',
@@ -98,7 +124,29 @@ def get_info(inputurl):
     r = requests.get(request_url, headers=requests_option, timeout=10)
     status_code = r.status_code
     r.raise_for_status()
-    return json.loads(r.text)
+    return json.loads(r.content.decode())
+
+def download_user_track_list(user_id):
+    page_count = 1
+    print("Downloading track list " + str(page_count))
+    request_url = "https://api-v2.soundcloud.com/users/" + user_id + "/tracks?client_id=" + client_id + "&limit=200&app_version=" + app_version + "&app_locale=en"
+    r = requests.get(request_url, headers=requests_option, timeout=10)
+    r.raise_for_status()
+    json_result_user = json.loads(r.content.decode())
+    track_list = json_result_user["collection"]
+    #May not work properly.
+    while True:
+        page_count = page_count + 1
+        print("Downloading track list " + str(page_count))
+        request_url = json_result_user["next_href"] + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
+        r = requests.get(request_url, headers=requests_option, timeout=10)
+        r.raise_for_status()
+        json_result_user = json.loads(r.content.decode())
+        if(json_result_user["next_href"]):
+            track_list = track_list + json_result_user["collection"]
+        else:
+            break
+    return track_list
 
 def download_track(track_info, save_directory):
     requests_option = {
@@ -107,14 +155,14 @@ def download_track(track_info, save_directory):
         'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
     }
-    print("downloading...")
+    print("Downloading...")
     Noid = str(track_info["id"])
     print("Track ID: " + Noid)
     request_url = 'https://api-v2.soundcloud.com/tracks/' + Noid + '?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
     r = requests.get(request_url, headers=requests_option, timeout=10)
     status_code = r.status_code
     r.raise_for_status()
-    track_info_2 = json.loads(r.text)
+    track_info_2 = json.loads(r.content.decode())
     if(not track_info_2["streamable"]):
         print(Fore.YELLOW + "Stream is not available." + Style.RESET_ALL)
         return
@@ -126,7 +174,7 @@ def download_track(track_info, save_directory):
         r = requests.get(request_url, headers=requests_option, timeout=10)
         status_code = r.status_code
         r.raise_for_status()
-        request_url = json.loads(r.text)["redirectUri"]
+        request_url = json.loads(r.content.decode())["redirectUri"]
         r = requests.get(request_url, headers=requests_option, stream=True, timeout=10)
         status_code = r.status_code
         r.raise_for_status()
@@ -156,7 +204,7 @@ def download_track(track_info, save_directory):
             r = requests.get(request_url, headers=requests_option, timeout=10)
             status_code = r.status_code
             r.raise_for_status()
-            request_url = json.loads(r.text)["url"]
+            request_url = json.loads(r.content.decode())["url"]
             r = requests.get(request_url, headers=requests_option, stream=True, timeout=10)
             status_code = r.status_code
             r.raise_for_status()
@@ -171,7 +219,7 @@ def download_track(track_info, save_directory):
             r = requests.get(request_url, headers=requests_option, timeout=10)
             status_code = r.status_code
             r.raise_for_status()
-            request_url = json.loads(r.text)["url"]
+            request_url = json.loads(r.content.decode())["url"]
             ffmpeg_path = program_directory_path + "\\ffmpeg.exe"
             if(os.path.isfile(ffmpeg_path)):
                 print("ffmpeg_path: " + ffmpeg_path)
@@ -181,7 +229,7 @@ def download_track(track_info, save_directory):
                 print(Fore.YELLOW + "Download using the built-in hls downloader. Use ffmpeg if it does not download properly." + Style.RESET_ALL)
                 r = requests.get(request_url)
                 file = open(save_directory + "/" + filename,mode="wb")
-                for for_data in r.text.split("\n"):
+                for for_data in r.content.decode().split("\n"):
                     if(not for_data[0] == "#"):
                         print("Downloading segment...")
                         r = requests.get(for_data, headers=requests_option, timeout=10)
@@ -249,6 +297,9 @@ except requests.exceptions.ConnectTimeout:
     traceback.print_exc()
     sys.exit(1)
 
+print("client_id: " + client_id)
+print("app_version: " + app_version)
+
 try:
     json_result = get_info(userinput)
 except requests.exceptions.ConnectionError:
@@ -268,20 +319,14 @@ except requests.exceptions.ConnectTimeout:
     traceback.print_exc()
     sys.exit(1)
 
-print("client_id: " + client_id)
-print("app_version: " + app_version)
-
 if(json_result["kind"] == "track"):
     track_list = [json_result]
 elif(json_result["kind"] == "playlist"):
     track_list = json_result["tracks"]
 elif(json_result["kind"] == "user"):
-    print("Downloading track list...")
-    userid = str(json_result["id"])
+    user_id = str(json_result["id"])
     try:
-        request_url = "https://api-v2.soundcloud.com/users/" + userid + "/tracks?representation=&client_id=" + client_id + "&limit=20&offset=0&linked_partitioning=1&app_version=" + app_version + "&app_locale=en"
-        r = requests.get(request_url, headers=requests_option, timeout=10)
-        r.raise_for_status()
+        track_list = download_user_track_list(user_id)
     except requests.exceptions.ConnectionError:
         print(Fore.RED + 'Error: network error.' + Style.RESET_ALL)
         traceback.print_exc()
@@ -294,44 +339,31 @@ elif(json_result["kind"] == "user"):
         print(Fore.RED + 'Error: Timed out. The SoundCloud server may be down.' + Style.RESET_ALL)
         traceback.print_exc()
         sys.exit(1)
-    json_result_user = json.loads(r.text)
-    track_list = json_result_user["collection"]
-    while True:
-        try:
-            request_url = json_result_user["next_href"] + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
-            r = requests.get(request_url, headers=requests_option, timeout=10)
-            r.raise_for_status()
-        except requests.exceptions.ConnectionError:
-            print(Fore.RED + 'Error: network error.' + Style.RESET_ALL)
-            traceback.print_exc()
-            sys.exit(1)
-        except requests.exceptions.HTTPError:
-            print(Fore.RED + 'Error: Status code error.' + Style.RESET_ALL)
-            traceback.print_exc()
-            sys.exit(1)
-        except requests.exceptions.ConnectTimeout:
-            print(Fore.RED + 'Error: Timed out. The SoundCloud server may be down.' + Style.RESET_ALL)
-            traceback.print_exc()
-            sys.exit(1)
-        json_result_user = json.loads(r.text)
-        if(json_result_user["next_href"]):
-            track_list = track_list + json_result_user["collection"]
-        else:
-            break
 else:
     print(Fore.YELLOW + 'Error: Unsupported url' + Style.RESET_ALL)
     sys.exit(1)
 
+print("Track count: " + str(len(track_list)))
 
 for for_json in track_list:
-    try:
-        download_track(for_json, save_directory)
-    except requests.exceptions.ConnectionError:
-        print(Fore.RED + 'Error: network error.' + Style.RESET_ALL)
-        traceback.print_exc()
-    except requests.exceptions.HTTPError:
-        print(Fore.RED + 'Error: Status code error.' + Style.RESET_ALL)
-        traceback.print_exc()
-    except requests.exceptions.ConnectTimeout:
-        print(Fore.RED + 'Error: Timed out. The SoundCloud server may be down.' + Style.RESET_ALL)
-        traceback.print_exc()
+    while True:
+        try:
+            download_track(for_json, save_directory)
+        except requests.exceptions.ConnectionError:
+            print(Fore.RED + 'Error: network error.' + Style.RESET_ALL)
+            traceback.print_exc()
+        except requests.exceptions.HTTPError:
+            print(Fore.RED + 'Error: Status code error.' + Style.RESET_ALL)
+            traceback.print_exc()
+        except requests.exceptions.ConnectTimeout:
+            print(Fore.RED + 'Error: Timed out. The SoundCloud server may be down.' + Style.RESET_ALL)
+            traceback.print_exc()
+        else:
+            break
+        result = input('Enter "r" to retry. Enter "c" to continue downloading. Enter nothing to exit. : ')
+        if(result == "r"):
+            pass
+        elif(result == "c"):
+            break
+        else:
+            sys.exit(1)

@@ -32,9 +32,3 @@ tqdm
 Copyright: Copyright (c) 2013 noamraph    Copyright (c) 2015-2020 Casper da Costa-Luis    Copyright (c) 2016 [PR #96] on behalf of Google Inc    Copyright (c) 2013 Noam Yorav-Raphael    [PR #96]: https://github.com/tqdm/tqdm/pull/96
 License: MIT License , Mozilla Public Licence v2.0
 SourceCode: https://github.com/tqdm/tqdm
-
-BeautifulSoup
---------------------------------------------------
-Copyright: Copyright (c) 2004-2019 Leonard Richardson
-License: MIT License
-SourceCode: https://bazaar.launchpad.net/~leonardr/beautifulsoup/bs4/files

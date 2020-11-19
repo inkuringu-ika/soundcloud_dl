@@ -7,7 +7,7 @@ SourceCode: https://github.com/inkuringu-ika/soundcloud_dl
 Python
 --------------------------------------------------
 Copyright: Copyright (c) 2001-2020 Python Software Foundation
-License: Python Software Foundation License <https://docs.python.org/ja/3.7/license.html>
+License: Python Software Foundation License <https://docs.python.org/3.8/license.html>
 
 FFmpeg
 --------------------------------------------------

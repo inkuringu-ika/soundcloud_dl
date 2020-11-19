@@ -249,18 +249,23 @@ if(len(sys.argv) > 1):
             print("-h,--help: Show usage")
             print("-C,--copyright: Show copyright")
             print("-V,--version: Show version")
-            print("-U,--update: Update (Experimental option)")
-            print("--ffmpeg-download: Download ffmpeg")
-            sys.exit(1)
+            sys.exit(0)
         elif(argv == "-C" or argv == "--copyright"):
-            print('soundcloud_dl: Copyright (c) 2020 inkuringu-ika    GNU GENERAL PUBLIC LICENSE Version 3')
-            print('Colorama: Copyright (c) 2010 Jonathan Hartley    BSD 3-Clause "New" or "Revised" License')
-            print('Requests: Copyright (c) 2019 Kenneth Reitz    Apache License Version 2.0')
-            print('tqdm: Copyright (c) 2013 noamraph    MIT License , Mozilla Public Licence v2.0')
-            sys.exit(1)
+            print('soundcloud_dl: Copyright (c) 2020 inkuringu-ika\n               GNU GENERAL PUBLIC LICENSE Version 3')
+            print()
+            print('Python: Copyright (c) 2001-2020 Python Software Foundation\n        Python Software Foundation License')
+            print()
+            print('FFmpeg: Copyright (c) 2000-2020 the FFmpeg developers\n        GNU GENERAL PUBLIC LICENSE Version 3')
+            print()
+            print('Colorama: Copyright (c) 2010 Jonathan Hartley\n          BSD 3-Clause "New" or "Revised" License')
+            print()
+            print('Requests: Copyright (c) 2019 Kenneth Reitz\n          Apache License Version 2.0')
+            print()
+            print('tqdm: Copyright: Copyright (c) 2013 noamraph\n      Copyright (c) 2015-2020 Casper da Costa-Luis\n      Copyright (c) 2016 [PR #96] on behalf of Google Inc\n      Copyright (c) 2013 Noam Yorav-Raphael\n      [PR #96]: https://github.com/tqdm/tqdm/pull/96\n      MIT License , Mozilla Public Licence v2.0')
+            sys.exit(0)
         elif(argv == "-V" or argv == "--version"):
             print("Version " + native_version)
-            sys.exit(1)
+            sys.exit(0)
         else:
             userinput = argv
 else:

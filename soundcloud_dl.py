@@ -6,6 +6,7 @@ import os
 import urllib
 import re
 import traceback
+import platform
 import time
 from distutils.version import StrictVersion
 from tqdm import tqdm
@@ -15,30 +16,32 @@ if getattr(sys, 'frozen', False):
     program_directory_path = os.path.dirname(os.path.abspath(sys.executable))
 else:
     program_directory_path = os.path.dirname(os.path.abspath(__file__))
+os_name = platform.system()
 
 print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
 print()
 
-native_version = "7.1.0"
+native_version = "7.1.1"
+update_test = False
 
 if(program_directory_path == os.getcwd()):
-    if(not os.path.isdir(".\\downloads")):
-        os.mkdir(".\\downloads")
-    save_directory = ".\\downloads"
+    if(not os.path.isdir("./downloads")):
+        os.mkdir("./downloads")
+    save_directory = "./downloads"
 else:
     save_directory = "."
 requests_option = {
     'Accept':'*/*',
     'Accept-Encoding':'gzip, deflate, br',
     'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
 }
 
 def client_id(force_update=False):
     print("Getting latest client_id...")
-    if(os.path.isfile(program_directory_path + "\\client_id.json") and not force_update):
-        f = open(program_directory_path + "\\client_id.json")
+    if(os.path.isfile(program_directory_path + "/client_id.json") and not force_update):
+        f = open(program_directory_path + "/client_id.json")
         data = f.read()
         f.close()
         data_json = json.loads(data)
@@ -50,13 +53,12 @@ def client_id(force_update=False):
         'Accept':'*/*',
         'Accept-Encoding':'gzip, deflate, br',
         'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
     }
     request_url = "https://soundcloud.com/"
     r = requests.get(request_url, headers=requests_option, timeout=10)
     status_code = r.status_code
     r.raise_for_status()
-    #by youtube-dl
     for src in reversed(re.findall(r'<script[^>]+src="([^"]+)"', r.content.decode())):
         print("Downloading JavaScript...")
         request_url = src
@@ -64,12 +66,11 @@ def client_id(force_update=False):
         r.raise_for_status()
         if(r.content.decode()):
             print("Parsing JavaScript...")
-            #client_ids = re.findall(r'client_id\s*:\s*"([0-9a-zA-Z]{32})"',r.text)
             re_result = re.search(r'client_id\s*:\s*"([0-9a-zA-Z]{32})"', r.content.decode())
             if(re_result is not None):
                 client_id = re_result.group(1)
                 if(client_id):
-                    f = open(program_directory_path + "\\client_id.json", 'w')
+                    f = open(program_directory_path + "/client_id.json", 'w')
                     f.write('{"client_id":"' + client_id + '","expires":' + str(int(time.time()) + 1209600)  + ',"generated_version":"' + native_version + '"}')
                     f.close()
                     return client_id
@@ -91,7 +92,7 @@ def app_version():
         'Accept':'*/*',
         'Accept-Encoding':'gzip, deflate, br',
         'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
     }
     request_url = "https://soundcloud.com/version.txt"
     r = requests.get(request_url, headers=requests_option, timeout=10)
@@ -104,7 +105,7 @@ def get_info(inputurl):
         'Accept':'*/*',
         'Accept-Encoding':'gzip, deflate, br',
         'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
     }
     request_url = "https://api-v2.soundcloud.com/resolve?url=" + inputurl + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
     r = requests.get(request_url, headers=requests_option, timeout=10)
@@ -119,7 +120,6 @@ def download_user_track_list(user_id):
     r.raise_for_status()
     json_result_user = json.loads(r.content.decode())
     track_list = json_result_user["collection"]
-    #May not work properly.
     while True:
         page_count = page_count + 1
         print("Downloading track list " + str(page_count))
@@ -138,7 +138,7 @@ def download_track(track_info, kind, save_directory):
         'Accept':'*/*',
         'Accept-Encoding':'gzip, deflate, br',
         'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
     }
     print("Downloading...")
     Noid = str(track_info["id"])
@@ -156,6 +156,8 @@ def download_track(track_info, kind, save_directory):
     if(track_info_2["policy"] == "BLOCK"):
         print(Fore.YELLOW + "The download of this track is blocked in your country." + Style.RESET_ALL)
         return
+    elif(track_info_2["policy"] == "SNIP"):
+        print(Fore.YELLOW + "The download of this track is restricted. Only 30-second preview is available for download." + Style.RESET_ALL)
     if(track_info_2["downloadable"] and track_info_2["has_downloads_left"]):
         request_url = "https://api-v2.soundcloud.com/tracks/" + Noid + '/download?client_id=' + client_id + "&app_version=" + app_version + "&app_locale=en"
         r = requests.get(request_url, headers=requests_option, timeout=10)
@@ -165,14 +167,14 @@ def download_track(track_info, kind, save_directory):
         r.raise_for_status()
         filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\||\n]',"_",track_info_2["title"] + "." + r.headers["content-disposition"][r.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"").split(".")[-1])
         pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
-        with open(save_directory + "\\" + filename, 'wb') as file:
+        with open(save_directory + "/" + filename, 'wb') as file:
             for chunk in r.iter_content(chunk_size=1024):
                 file.write(chunk)
                 pbar.update(len(chunk))
             pbar.close()
     else:
         print(Fore.YELLOW + 'Not a free download!' + Style.RESET_ALL)
-        filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\|]',"_",track_info_2["title"] + ".mp3")
+        filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\||\n]',"_",track_info_2["title"] + ".mp3")
         hls_active = 0
         progressive_active = 0
         format_for_count = 0
@@ -192,7 +194,7 @@ def download_track(track_info, kind, save_directory):
             r = requests.get(request_url, headers=requests_option, stream=True, timeout=10)
             r.raise_for_status()
             pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
-            with open(save_directory + "\\" + filename, 'wb') as file:
+            with open(save_directory + "/" + filename, 'wb') as file:
                 for chunk in r.iter_content(chunk_size=1024):
                     file.write(chunk)
                     pbar.update(len(chunk))
@@ -202,15 +204,14 @@ def download_track(track_info, kind, save_directory):
             r = requests.get(request_url, headers=requests_option, timeout=10)
             r.raise_for_status()
             request_url = json.loads(r.content.decode())["url"]
-            ffmpeg_path = program_directory_path + "\\ffmpeg.exe"
+            ffmpeg_path = program_directory_path + "/ffmpeg.exe"
             if(os.path.isfile(ffmpeg_path)):
                 print("ffmpeg_path: " + ffmpeg_path)
                 subprocess.call([ffmpeg_path,"-y","-i",request_url,"-c","copy",save_directory + "/" + filename])
             else:
-                #print(Fore.YELLOW + "FFmpeg is required to download this audio." + Style.RESET_ALL)
                 print(Fore.YELLOW + "Download using the built-in hls downloader. Use ffmpeg if it does not download properly." + Style.RESET_ALL)
                 r = requests.get(request_url)
-                file = open(save_directory + "\\" + filename,mode="wb")
+                file = open(save_directory + "/" + filename,mode="wb")
                 for for_data in r.content.decode().split("\n"):
                     if(not for_data[0] == "#"):
                         print("Downloading segment...")
@@ -250,42 +251,46 @@ if(len(sys.argv) > 1):
             print("Version " + native_version)
             sys.exit(0)
         elif(argv == "-U" or argv == "--update"):
-            if(getattr(sys, 'frozen', False)):
-                print("Checking for updates...")
-                r = requests.get("https://inkuringu-ika.github.io/soundcloud_dl/versions.json")
-                r.raise_for_status()
-                json_result = json.loads(r.content.decode())
-                if(not StrictVersion(json_result["minimum_version_available"]) > StrictVersion(native_version)):
-                    for for_data in json_result["versions"]:
-                        if(for_data["available"]):
-                            latest_version = for_data["version"]
-                            latest_download_url = for_data["download_url"]
-                            break
-                    if(StrictVersion(latest_version) > StrictVersion(native_version)):
-                        print("Updates found!")
-                        print(native_version + " -> " + latest_version)
-                        request_url = latest_download_url
-                        r = requests.get(request_url, headers=requests_option, stream=True, timeout=10)
-                        r.raise_for_status()
-                        pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
-                        with open(program_directory_path + "\\" + "soundcloud_dl_latest_tmp.bin", 'wb') as file:
-                            for chunk in r.iter_content(chunk_size=1024):
-                                file.write(chunk)
-                                pbar.update(len(chunk))
-                            pbar.close()
-                        print("Updating... (Please wait.)")
-                        subprocess.Popen('ping 127.0.0.1 -n 5 -w 1000 > nul && del soundcloud_dl.exe > nul && ren soundcloud_dl_latest_tmp.bin soundcloud_dl.exe > nul && echo Successful update', shell=True, cwd=program_directory_path)
-                        sys.exit(0)
+            if(os_name == "Windows"):
+                if(getattr(sys, 'frozen', False) or update_test):
+                    print("Checking for updates...")
+                    r = requests.get("https://inkuringu-ika.github.io/soundcloud_dl/versions.json")
+                    r.raise_for_status()
+                    json_result = json.loads(r.content.decode())
+                    if(not StrictVersion(json_result["minimum_version_available"]) > StrictVersion(native_version)):
+                        for for_data in json_result["versions"]:
+                            if(for_data["available"]):
+                                latest_version = for_data["version"]
+                                latest_download_url = for_data["download_url"]
+                                break
+                        if(StrictVersion(latest_version) > StrictVersion(native_version) or update_test):
+                            print("Updates found!")
+                            print(native_version + " -> " + latest_version)
+                            request_url = latest_download_url
+                            r = requests.get(request_url, headers=requests_option, stream=True, timeout=10)
+                            r.raise_for_status()
+                            pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
+                            with open(program_directory_path + "/" + "soundcloud_dl_latest_tmp.bin", 'wb') as file:
+                                for chunk in r.iter_content(chunk_size=1024):
+                                    file.write(chunk)
+                                    pbar.update(len(chunk))
+                                pbar.close()
+                            print("Updating... (Please wait.)")
+                            subprocess.Popen('echo Waiting for the program to exit... && ping 127.0.0.1 -n 5 -w 1000 > nul && echo Updating... && del soundcloud_dl.exe > nul && ren soundcloud_dl_latest_tmp.bin soundcloud_dl.exe > nul && echo Successful update', shell=True, cwd=program_directory_path)
+                            sys.exit(0)
+                        else:
+                            print("No updates found.")
+                            sys.exit(0)
                     else:
-                        print("No updates found.")
+                        print(Fore.YELLOW + "Update found but must be done manually." + Style.RESET_ALL)
+                        print("Please download from here.")
+                        print("https://github.com/inkuringu-ika/soundcloud_dl/releases")
                         sys.exit(0)
                 else:
-                    print(Fore.YELLOW + "Update found but must be done manually." + Style.RESET_ALL)
-                    print("Please download from here.")
-                    print("https://github.com/inkuringu-ika/soundcloud_dl/releases")
+                    print(Fore.YELLOW + "This option is only available in the exe version." + Style.RESET_ALL)
                     sys.exit(0)
             else:
-                print(Fore.YELLOW + "This option is only available in the exe version." + Style.RESET_ALL)
+                print(Fore.YELLOW + "The update function is currently only available on Windows." + Style.RESET_ALL)
                 sys.exit(0)
         elif(argv == "-CU" or argv == "--client_id-update"):
             client_id(True)

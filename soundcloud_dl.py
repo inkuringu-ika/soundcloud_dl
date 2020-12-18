@@ -22,7 +22,13 @@ print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
 print()
 
-native_version = "7.1.1"
+native_version = "7.1.2"
+requests_option = {
+    'Accept':'*/*',
+    'Accept-Encoding':'gzip, deflate, br',
+    'Accept-Language':'en',
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
+}
 update_test = False
 
 if(program_directory_path == os.getcwd()):
@@ -31,14 +37,9 @@ if(program_directory_path == os.getcwd()):
     save_directory = "./downloads"
 else:
     save_directory = "."
-requests_option = {
-    'Accept':'*/*',
-    'Accept-Encoding':'gzip, deflate, br',
-    'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
-}
 
 def client_id(force_update=False):
+    global requests_option
     print("Getting latest client_id...")
     if(os.path.isfile(program_directory_path + "/client_id.json") and not force_update):
         f = open(program_directory_path + "/client_id.json")
@@ -49,12 +50,6 @@ def client_id(force_update=False):
             return data_json["client_id"]
         else:
             pass
-    requests_option = {
-        'Accept':'*/*',
-        'Accept-Encoding':'gzip, deflate, br',
-        'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
-    }
     request_url = "https://soundcloud.com/"
     r = requests.get(request_url, headers=requests_option, timeout=10)
     status_code = r.status_code
@@ -87,32 +82,23 @@ def client_id(force_update=False):
             return for_json["client_id"]
 
 def app_version():
+    global requests_option
     print("Getting latest app_version...")
-    requests_option = {
-        'Accept':'*/*',
-        'Accept-Encoding':'gzip, deflate, br',
-        'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
-    }
     request_url = "https://soundcloud.com/version.txt"
     r = requests.get(request_url, headers=requests_option, timeout=10)
     r.raise_for_status()
     return r.content.decode()
 
 def get_info(inputurl):
+    global requests_option
     print("Downloading trackinfo...")
-    requests_option = {
-        'Accept':'*/*',
-        'Accept-Encoding':'gzip, deflate, br',
-        'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
-    }
     request_url = "https://api-v2.soundcloud.com/resolve?url=" + inputurl + "&client_id=" + client_id + "&app_version=" + app_version + "&app_locale=en"
     r = requests.get(request_url, headers=requests_option, timeout=10)
     r.raise_for_status()
     return json.loads(r.content.decode())
 
 def download_user_track_list(user_id):
+    global requests_option
     page_count = 1
     print("Downloading track list " + str(page_count))
     request_url = "https://api-v2.soundcloud.com/users/" + user_id + "/tracks?client_id=" + client_id + "&limit=200&app_version=" + app_version + "&app_locale=en"
@@ -134,12 +120,7 @@ def download_user_track_list(user_id):
     return track_list
 
 def download_track(track_info, kind, save_directory):
-    requests_option = {
-        'Accept':'*/*',
-        'Accept-Encoding':'gzip, deflate, br',
-        'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0'
-    }
+    global requests_option
     print("Downloading...")
     Noid = str(track_info["id"])
     print("Track ID: " + Noid)
@@ -172,6 +153,7 @@ def download_track(track_info, kind, save_directory):
                 file.write(chunk)
                 pbar.update(len(chunk))
             pbar.close()
+            file.close()
     else:
         print(Fore.YELLOW + 'Not a free download!' + Style.RESET_ALL)
         filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\||\n]',"_",track_info_2["title"] + ".mp3")
@@ -199,6 +181,7 @@ def download_track(track_info, kind, save_directory):
                     file.write(chunk)
                     pbar.update(len(chunk))
                 pbar.close()
+                file.close()
         elif(hls_active == 1):
             request_url = track_info_2["media"]["transcodings"][hls_active_count]["url"] + '?client_id=' + client_id
             r = requests.get(request_url, headers=requests_option, timeout=10)
@@ -245,7 +228,7 @@ if(len(sys.argv) > 1):
             print()
             print('Requests: Copyright (c) 2019 Kenneth Reitz\n          Apache License Version 2.0')
             print()
-            print('tqdm: Copyright: Copyright (c) 2013 noamraph\n      Copyright (c) 2015-2020 Casper da Costa-Luis\n      Copyright (c) 2016 [PR #96] on behalf of Google Inc\n      Copyright (c) 2013 Noam Yorav-Raphael\n      [PR #96]: https://github.com/tqdm/tqdm/pull/96\n      MIT License , Mozilla Public Licence v2.0')
+            print('tqdm: Copyright (c) 2013 noamraph\n      Copyright (c) 2015-2020 Casper da Costa-Luis\n      Copyright (c) 2016 [PR #96] on behalf of Google Inc\n      Copyright (c) 2013 Noam Yorav-Raphael\n      [PR #96]: https://github.com/tqdm/tqdm/pull/96\n      MIT License , Mozilla Public Licence v2.0')
             sys.exit(0)
         elif(argv == "-v" or argv == "--version"):
             print("Version " + native_version)
@@ -275,6 +258,7 @@ if(len(sys.argv) > 1):
                                     file.write(chunk)
                                     pbar.update(len(chunk))
                                 pbar.close()
+                                file.close()
                             print("Updating... (Please wait.)")
                             subprocess.Popen('echo Waiting for the program to exit... && ping 127.0.0.1 -n 5 -w 1000 > nul && echo Updating... && del soundcloud_dl.exe > nul && ren soundcloud_dl_latest_tmp.bin soundcloud_dl.exe > nul && echo Successful update', shell=True, cwd=program_directory_path)
                             sys.exit(0)
@@ -308,7 +292,10 @@ app_version = app_version()
 print("client_id: " + client_id)
 print("app_version: " + app_version)
 
-json_result = get_info(userinput)
+if(userinput[-1] == "/"):
+    json_result = get_info(userinput[0:-1])
+else:
+    json_result = get_info(userinput)
 
 kind = json_result["kind"]
 if(kind == "track"):

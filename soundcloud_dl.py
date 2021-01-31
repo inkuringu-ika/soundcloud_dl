@@ -22,7 +22,7 @@ print('Copyright (c) 2020 inkuringu-ika')
 print('This software is released under the "GNU GENERAL PUBLIC LICENSE Version 3", see LICENSE file.')
 print()
 
-native_version = "7.1.2"
+native_version = "7.1.3"
 requests_option = {
     'Accept':'*/*',
     'Accept-Encoding':'gzip, deflate, br',
@@ -146,7 +146,7 @@ def download_track(track_info, kind, save_directory):
         request_url = json.loads(r.content.decode())["redirectUri"]
         r = requests.get(request_url, headers=requests_option, stream=True, timeout=10)
         r.raise_for_status()
-        filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\||\n]',"_",track_info_2["title"] + "." + r.headers["content-disposition"][r.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"").split(".")[-1])
+        filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\||\n]',"_",track_info_2["title"] + " - " + track_info_2["user"]["username"] + "." + r.headers["content-disposition"][r.headers["content-disposition"].find("filename=") + len("filename="):].replace('"',"").split(".")[-1])
         pbar = tqdm(total=int(r.headers["content-length"]), unit="B", unit_scale=True)
         with open(save_directory + "/" + filename, 'wb') as file:
             for chunk in r.iter_content(chunk_size=1024):
@@ -156,7 +156,7 @@ def download_track(track_info, kind, save_directory):
             file.close()
     else:
         print(Fore.YELLOW + 'Not a free download!' + Style.RESET_ALL)
-        filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\||\n]',"_",track_info_2["title"] + ".mp3")
+        filename = re.sub(r'[\\|/|:|\*|?|"|<|>|\||\n]',"_",track_info_2["title"] + " - " + track_info_2["user"]["username"] + ".mp3")
         hls_active = 0
         progressive_active = 0
         format_for_count = 0
